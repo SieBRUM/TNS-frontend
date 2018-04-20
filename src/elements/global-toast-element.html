@@ -1,0 +1,75 @@
+
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../bower_components/brum-global-variable/brum-global-variable.html">
+<link rel="import" href="../../bower_components/paper-toast/paper-toast.html">
+
+<dom-module id="global-toast-element">
+  <template>
+      <style>
+          .successToast {
+            --paper-toast-background-color: #28A745;
+          }
+
+          .errorToast {
+            --paper-toast-background-color: #ff0033;
+          }
+      </style>
+
+    <brum-global-variable key="successtoast" value="{{succesToast}}"></brum-global-variable>
+    <brum-global-variable key="errortoast" value="{{errorToast}}"></brum-global-variable>
+
+    <paper-toast id="success" text="{{succesToast}}" opened="{{successToastOpened}}" class="successToast"></paper-toast>
+    <paper-toast id="error" text="{{errorToast}}" opened="{{errorToastOpened}}" class="errorToast"></paper-toast>
+  </template>
+
+  <script>
+    class GlobalToastElement extends Polymer.Element {
+      static get is() { return 'global-toast-element'; }
+      static get properties() {
+        return {
+          succesToast: {
+            type: String,
+            observer: '_onSuccessChanged'
+          },
+          successToastOpened: {
+            type: Boolean,
+            observer: '_onSuccessOpenedChanged'
+          },
+          errorToast: {
+            type: String,
+            observer: '_onErrorChanged'
+          },
+          errorToastOpened: {
+            type: Boolean,
+            observer: '_onErrorOpenedChanged'
+          }
+        };
+      }
+      _onSuccessChanged() {
+        if(this.succesToast != "") {
+          this.$.success.open();
+        }
+      }
+
+      _onSuccessOpenedChanged() {
+        if(!this.successToastOpened) {
+          this.succesToast = "";
+        }
+      }
+
+      _onErrorChanged() {
+        if(this.errorToast != "") {
+          this.$.error.open();
+        }
+      }
+
+      _onErrorOpenedChanged() {
+        if(!this.errorToastOpened) {
+          this.errorToast = "";
+        }
+      }
+    }
+
+    window.customElements.define(GlobalToastElement.is, GlobalToastElement);
+  </script>
+</dom-module>

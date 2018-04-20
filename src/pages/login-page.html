@@ -1,0 +1,112 @@
+
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../bower_components/iron-form/iron-form.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="../../bower_components/brum-global-variable/brum-global-variable.html">
+<link rel="import" href="../../bower_components/paper-spinner/paper-spinner-lite.html">
+<link rel="import" href="../../bower_components/app-storage/app-localstorage/app-localstorage-document.html">
+<link rel="import" href="../shared-styles.html">
+
+<dom-module id="login-page">
+  <template>
+    <style include="shared-styles">
+      :host {
+        display: block;
+
+        padding: 10px;
+      }
+    </style>
+    <brum-global-variable key="successtoast" value="{{succesToast}}"></brum-global-variable>
+    <brum-global-variable key="errortoast" value="{{errorToast}}"></brum-global-variable>
+
+    <app-localstorage-document key="userdata" data="{{userdata}}"></app-localstorage-document>
+
+    <iron-ajax
+      id="loginRequest"
+      url="/backend/api/authorization"
+      handle-as="json"
+      on-response="handleResponse"
+      on-error="handleError"
+      loading="{{isLoading}}"
+      body="[[loginParams(username, password)]]"
+      method="POST"
+      with-credentials
+      content-type="application/json"
+    ></iron-ajax>
+
+    <div class="card">
+      <h1>Login</h1>
+      <paper-input label="Username" value="{{username}}"></paper-input>
+      <paper-input label="Password" type="password" value="{{password}}"></paper-input>
+      <template is="dom-if" if="{{!isLoading}}">
+          <paper-button raised on-tap="onLogin">Login!</paper-button>    
+      </template>
+      <template is="dom-if" if="{{isLoading}}">
+          <paper-spinner-lite active></paper-spinner-lite>
+      </template>
+
+      <br /><br /><br /> login status is: [[isLoggedIn(userdata)]]
+    </div>
+  </template>
+
+  <script>
+    class LoginPage extends Polymer.Element {
+      static get is() { return 'login-page'; }
+      static get properties() {
+        return {
+          isLoading: {
+            type: Boolean,
+            value: false
+          },
+          succesToast: String,
+          errorToast: String,
+          userdata: String
+        };
+      }
+
+      onLogin() {
+        this.$.loginRequest.generateRequest();
+      }
+
+      handleResponse(data) {
+        var loginObject = {
+          username: data.detail.xhr.response.Username,
+          accesstoken: data.detail.xhr.response.Token,
+          accesslevel: data.detail.xhr.response.AccessLevel
+        };
+
+        this.userdata = JSON.stringify(loginObject);
+        
+        if(data.detail.xhr.response.LastLogin != null) {
+          this.succesToast = `Welcome back ${loginObject.username}! Your accesslevel is '${loginObject.accesslevel}'. Last login: ${data.detail.xhr.response.LastLogin}` ;
+        } else {
+          this.succesToast = `Welcome back ${loginObject.username}! Your accesslevel is '${loginObject.accesslevel}'. This is the first time logging in!` ;
+        }
+      }
+
+      handleError(error) {
+        this.errorToast = "Invalid username and/or password!"
+      }
+
+      loginParams(username, password) {
+        var params = {
+          Username: username,
+          Password: password
+        }
+        return JSON.stringify(params);
+      }
+
+      isLoggedIn(userdata) {
+        if(Object.keys(userdata).length === 0) {
+          return "Logged out!"
+        }
+        var user = JSON.parse(userdata);
+        return `Logged in as ${user.username}, ${user.accesslevel}, ${user.accesstoken}!`;
+      }
+    }
+
+    window.customElements.define(LoginPage.is, LoginPage);
+  </script>
+</dom-module>
