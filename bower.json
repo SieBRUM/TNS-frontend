@@ -1,7 +1,8 @@
 {
-  "name": "polymer-starter-kit",
+  "name": "tns-web-application",
   "authors": [
-    "The Polymer Authors"
+    "Siebren Kraak",
+    "Bas Mutsaers"
   ],
   "license": "https://polymer.github.io/LICENSE.txt",
   "dependencies": {
