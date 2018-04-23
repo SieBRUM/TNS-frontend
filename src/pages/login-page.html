@@ -1,4 +1,3 @@
-
 <link rel="import" href="../../bower_components/polymer/polymer-element.html">
 <link rel="import" href="../../bower_components/iron-form/iron-form.html">
 <link rel="import" href="../../bower_components/paper-input/paper-input.html">
@@ -20,34 +19,27 @@
     </style>
     <brum-global-variable key="successtoast" value="{{succesToast}}"></brum-global-variable>
     <brum-global-variable key="errortoast" value="{{errorToast}}"></brum-global-variable>
+    <brum-global-variable key="loggedin" value="{{loggedIn}}"></brum-global-variable>
 
     <app-localstorage-document key="userdata" data="{{userdata}}"></app-localstorage-document>
 
-    <iron-ajax
-      id="loginRequest"
-      url="/backend/api/authorization"
-      handle-as="json"
-      on-response="handleResponse"
-      on-error="handleError"
-      loading="{{isLoading}}"
-      body="[[loginParams(username, password)]]"
-      method="POST"
-      with-credentials
-      content-type="application/json"
-    ></iron-ajax>
+    <iron-ajax id="loginRequest" url="/backend/api/login" handle-as="json" on-response="handleResponse" on-error="handleError"
+      loading="{{isLoading}}" body="[[loginParams(username, password)]]" method="POST" with-credentials content-type="application/json"></iron-ajax>
 
     <div class="card">
       <h1>Login</h1>
       <paper-input label="Username" value="{{username}}"></paper-input>
       <paper-input label="Password" type="password" value="{{password}}"></paper-input>
       <template is="dom-if" if="{{!isLoading}}">
-          <paper-button raised on-tap="onLogin">Login!</paper-button>    
+        <paper-button raised on-tap="onLogin">Login!</paper-button>
       </template>
       <template is="dom-if" if="{{isLoading}}">
-          <paper-spinner-lite active></paper-spinner-lite>
+        <paper-spinner-lite active></paper-spinner-lite>
       </template>
 
-      <br /><br /><br /> login status is: [[isLoggedIn(userdata)]]
+      <br />
+      <br />
+      <br /> login status is: [[isLoggedIn(userdata)]]
     </div>
   </template>
 
@@ -62,7 +54,8 @@
           },
           succesToast: String,
           errorToast: String,
-          userdata: String
+          userdata: String,
+          loggedIn: Boolean
         };
       }
 
@@ -78,11 +71,11 @@
         };
 
         this.userdata = JSON.stringify(loginObject);
-        
-        if(data.detail.xhr.response.LastLogin != null) {
-          this.succesToast = `Welcome back ${loginObject.username}! Your accesslevel is '${loginObject.accesslevel}'. Last login: ${data.detail.xhr.response.LastLogin}` ;
+
+        if (data.detail.xhr.response.LastLogin != null) {
+          this.succesToast = `Welcome back ${loginObject.username}! Your accesslevel is '${loginObject.accesslevel}'. Last login: ${data.detail.xhr.response.LastLogin}`;
         } else {
-          this.succesToast = `Welcome back ${loginObject.username}! Your accesslevel is '${loginObject.accesslevel}'. This is the first time logging in!` ;
+          this.succesToast = `Welcome ${loginObject.username}! Your accesslevel is '${loginObject.accesslevel}'. This is the first time logging in!`;
         }
       }
 
@@ -99,11 +92,12 @@
       }
 
       isLoggedIn(userdata) {
-        if(Object.keys(userdata).length === 0) {
+        if (Object.keys(userdata).length === 0) {
           return "Logged out!"
         }
         var user = JSON.parse(userdata);
         return `Logged in as ${user.username}, ${user.accesslevel}, ${user.accesstoken}!`;
+        this.loggedIn = true;
       }
     }
 
