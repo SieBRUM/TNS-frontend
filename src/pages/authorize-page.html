@@ -94,7 +94,9 @@
       handleError(data) {
         this.errorToast = "User is not authorized!";
         this.loggedIn = false;
-        this.hasBeenAuthorised = true;        
+        this.hasBeenAuthorised = true;
+        window.history.replaceState({}, null, '#/login');
+        window.dispatchEvent(new CustomEvent('location-changed'));            
       }
     }
 

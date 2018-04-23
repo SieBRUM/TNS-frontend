@@ -137,11 +137,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           },
           loggedIn: {
             type: Boolean,
-            value: false
+            value: false,
+            observer: '_onLoginChanged'
           },
           hasBeenAuthorised: {
             type: Boolean,
-            value: false
+            value: false,
+            observer: '_onAuthorisedChanged'
           }
         };
       }
@@ -190,6 +192,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         this.userdata = {};
         this.loggedIn = false;
         this.page = 'login';
+      }
+
+      _onAuthorisedChanged() {
+        if(this.hasBeenAuthorised && !this.loggedIn) {
+          if(this.page != 'login') {
+            this.page = 'login';
+          }
+        }
       }
     }
 
