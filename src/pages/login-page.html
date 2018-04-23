@@ -73,7 +73,7 @@
         if (data.detail.xhr.response.LastLogin != null) {
           this.succesToast = `Welcome back ${loginObject.username}! Your accesslevel is '${loginObject.accesslevel}'. Last login: ${data.detail.xhr.response.LastLogin}`;
         } else {
-          this.succesToast = `Welcome back ${loginObject.username}! Your accesslevel is '${loginObject.accesslevel}'. This is the first time logging in!`;
+          this.succesToast = `Welcome ${loginObject.username}! Your accesslevel is '${loginObject.accesslevel}'. This is the first time logging in!`;
         }
       }
 

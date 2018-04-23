@@ -73,6 +73,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     <global-toast-element></global-toast-element>
     <app-localstorage-document key="userdata" data="{{userdata}}" id="userdata"></app-localstorage-document>
     <brum-global-variable key="loggedin" value="{{loggedIn}}"></brum-global-variable>
+    <brum-global-variable key="hasbeenauthorised" value="{{hasBeenAuthorised}}"></brum-global-variable>
 
     <app-location route="{{route}}" url-space-regex="^[[rootPath]]" use-hash-as-path>
     </app-location>
@@ -137,6 +138,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           loggedIn: {
             type: Boolean,
             value: false
+          },
+          hasBeenAuthorised: {
+            type: Boolean,
+            value: false
           }
         };
       }
@@ -150,6 +155,15 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       _routePageChanged(page) {
         // If no page was found in the route data, page will be an empty string.
         // Default to 'view1' in that case.
+        if(!this.hasBeenAuthorised) {
+          this.page = 'authorize';
+          return;
+        }
+
+        if(!this.loggedIn) {
+          this.page = 'login';
+        }
+
         this.page = page || 'login';
 
         // Close a non-persistent drawer when the page & route are changed.
