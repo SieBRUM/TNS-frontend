@@ -1,13 +1,3 @@
-<!--
-@license
-Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
-This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
-The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
-The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
-Code distributed by Google as part of the polymer project is also
-subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
--->
-
 <link rel="import" href="../bower_components/polymer/polymer-element.html">
 <link rel="import" href="../bower_components/app-layout/app-drawer/app-drawer.html">
 <link rel="import" href="../bower_components/app-layout/app-drawer-layout/app-drawer-layout.html">
@@ -20,7 +10,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../bower_components/iron-pages/iron-pages.html">
 <link rel="import" href="../bower_components/iron-selector/iron-selector.html">
 <link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../bower_components/app-localize-behavior/app-localize-behavior.html">
 <link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="my-icons.html">
 
 <link rel="lazy-import" href="pages/login-page.html">
@@ -72,8 +64,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
     <global-toast-element></global-toast-element>
     <app-localstorage-document key="userdata" data="{{userdata}}" id="userdata"></app-localstorage-document>
+    <app-localstorage-document key="language" data="{{language}}" id="language"></app-localstorage-document>
     <brum-global-variable key="loggedin" value="{{loggedIn}}"></brum-global-variable>
     <brum-global-variable key="hasbeenauthorised" value="{{hasBeenAuthorised}}"></brum-global-variable>
+    <brum-global-variable key="language" value="{{language}}"></brum-global-variable>
 
     <app-location route="{{route}}" url-space-regex="^[[rootPath]]" use-hash-as-path>
     </app-location>
@@ -98,6 +92,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           <app-toolbar>
             <paper-icon-button icon="my-icons:menu" drawer-toggle></paper-icon-button>
             <div main-title>Tns web application</div>
+            <paper-icon-button src$="{{toPicture(language)}}" on-tap="_onLanguageChanged"></paper-icon-button>
             <template is="dom-if" if="[[loggedIn]]">
               <paper-button raised on-tap="logout">LOG OUT</paper-button>
             </template>
@@ -118,7 +113,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     // preventable, allowing for better scrolling performance.
     Polymer.setPassiveTouchGestures(true);
 
-    class TnsApp extends Polymer.Element {
+    class TnsApp extends Polymer.mixinBehaviors([Polymer.AppLocalizeBehavior], Polymer.Element) {
       static get is() { return 'tns-app'; }
 
       static get properties() {
@@ -144,6 +139,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             type: Boolean,
             value: false,
             observer: '_onAuthorisedChanged'
+          },
+          language: {
+            value: 'nl'
           }
         };
       }
@@ -154,6 +152,18 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         ];
       }
 
+      connectedCallback() {
+        super.connectedCallback();
+        this.loadResources(this.resolveUrl('../locales.json'));
+      }
+      
+      toPicture(language) {
+        if(language == 'en') {
+          return "../../images/dutch.png";
+        } else {
+          return "../../images/english.png";
+        }
+      }
       _routePageChanged(page) {
         // If no page was found in the route data, page will be an empty string.
         // Default to 'view1' in that case.
@@ -199,6 +209,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           if(this.page != 'login') {
             this.page = 'login';
           }
+        }
+      }
+
+      _onLanguageChanged() {
+        if(this.language == 'en') {
+          this.language = 'nl';
+        } else {
+          this.language = 'en'
         }
       }
     }

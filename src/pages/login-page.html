@@ -7,6 +7,7 @@
 <link rel="import" href="../../bower_components/paper-spinner/paper-spinner-lite.html">
 <link rel="import" href="../../bower_components/app-storage/app-localstorage/app-localstorage-document.html">
 <link rel="import" href="../shared-styles.html">
+<link rel="import" href="../../bower_components/app-localize-behavior/app-localize-behavior.html">
 
 <dom-module id="login-page">
   <template>
@@ -20,6 +21,7 @@
     <brum-global-variable key="successtoast" value="{{succesToast}}"></brum-global-variable>
     <brum-global-variable key="errortoast" value="{{errorToast}}"></brum-global-variable>
     <brum-global-variable key="loggedin" value="{{loggedIn}}"></brum-global-variable>
+    <brum-global-variable key="language" value="{{language}}"></brum-global-variable>    
 
     <app-localstorage-document key="userdata" data="{{userdata}}"></app-localstorage-document>
 
@@ -28,23 +30,19 @@
 
     <div class="card">
       <h1>Login</h1>
-      <paper-input label="Username" value="{{username}}"></paper-input>
-      <paper-input label="Password" type="password" value="{{password}}"></paper-input>
+      <paper-input label="{{localize('username')}}" value="{{username}}"></paper-input>
+      <paper-input label="{{localize('password')}}" type="password" value="{{password}}"></paper-input>
       <template is="dom-if" if="{{!isLoading}}">
         <paper-button raised on-tap="onLogin">Login!</paper-button>
       </template>
       <template is="dom-if" if="{{isLoading}}">
         <paper-spinner-lite active></paper-spinner-lite>
       </template>
-
-      <br />
-      <br />
-      <br /> login status is: [[isLoggedIn(userdata)]]
     </div>
   </template>
 
   <script>
-    class LoginPage extends Polymer.Element {
+    class LoginPage extends Polymer.mixinBehaviors([Polymer.AppLocalizeBehavior], Polymer.Element) {
       static get is() { return 'login-page'; }
       static get properties() {
         return {
@@ -57,6 +55,11 @@
           userdata: String,
           loggedIn: Boolean
         };
+      }
+
+      connectedCallback() {
+        super.connectedCallback();
+        this.loadResources(this.resolveUrl('../../locales.json'));
       }
 
       onLogin() {
@@ -73,14 +76,14 @@
         this.userdata = JSON.stringify(loginObject);
 
         if (data.detail.xhr.response.LastLogin != null) {
-          this.succesToast = `Welcome back ${loginObject.username}! Your accesslevel is '${loginObject.accesslevel}'. Last login: ${data.detail.xhr.response.LastLogin}`;
+          this.succesToast = this.localize('login', 'name', loginObject.username, 'accesslevel', loginObject.accesslevel, 'lastlogin', data.detail.xhr.response.LastLogin);
         } else {
-          this.succesToast = `Welcome ${loginObject.username}! Your accesslevel is '${loginObject.accesslevel}'. This is the first time logging in!`;
+          this.succesToast = this.localize('first_login', 'name', loginObject.username, 'accesslevel', loginObject.accesslevel);
         }
       }
 
       handleError(error) {
-        this.errorToast = "Invalid username and/or password!"
+        this.errorToast = this.localize('invalid_login_details');
       }
 
       loginParams(username, password) {

@@ -1,0 +1,26 @@
+{
+    "en": {
+        "hello": "Hello there",
+        "username": "Username",
+        "password": "Password",
+        "login": "Welcome back {name}! Your accesslevel is '{accesslevel}'. Last login: {lastlogin}",
+        "first_login": "Welcome {name}! Your accesslevel is '{accesslevel}'. This is your first time logging in!",
+        "user_authorized": "User authorised!",
+        "user_not_authorized": "User not authorised!",
+        "invalid_login_details": "Invalid username and/or password!",
+        "authorising_user": "Authorising user",
+        "authorising_user_subtext": "Does this take longer than 5 seconds? Try reloading the page."
+    },
+    "nl": {
+        "hello": "Hoi daar",
+        "username": "Gebruikersnaam",
+        "password": "Wachtwoord",
+        "login": "Welkom terug {name}! Je toegangsniveau is '{accesslevel}'. Laatste login: {lastlogin}",
+        "first_login": "Welkom {name}! Je toegangsniveau is '{accesslevel}'. Dit is de eerste keer dat je inlogt!",
+        "user_authorized": "Gebruiker geauthoriseerd!",
+        "user_not_authorized": "Gebruiker niet geauthoriseerd!",
+        "invalid_login_details": "Ongeldige gebruikersnaam en/of wachtwoord",
+        "authorising_user":"Gebruiker autoriseren",
+        "authorising_user_subtext": "Duurt dit langer dan 5 seconden? Herlaad dan de pagina."
+    }
+}
