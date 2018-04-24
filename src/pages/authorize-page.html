@@ -3,6 +3,7 @@
 <link rel="import" href="../../bower_components/brum-global-variable/brum-global-variable.html">
 <link rel="import" href="../../bower_components/paper-spinner/paper-spinner-lite.html">
 <link rel="import" href="../../bower_components/app-storage/app-localstorage/app-localstorage-document.html">
+<link rel="import" href="../../bower_components/app-localize-behavior/app-localize-behavior.html">
 <link rel="import" href="../shared-styles.html">
 
 <dom-module id="authorize-page">
@@ -27,6 +28,7 @@
     <brum-global-variable key="errortoast" value="{{errorToast}}"></brum-global-variable>
     <brum-global-variable key="loggedin" value="{{loggedIn}}"></brum-global-variable>
     <brum-global-variable key="hasbeenauthorised" value="{{hasBeenAuthorised}}"></brum-global-variable>
+    <brum-global-variable key="language" value="{{language}}"></brum-global-variable>
 
     <template is="dom-if" if="{{!hasBeenAuthorised}}">
       <div class="center">
@@ -34,8 +36,8 @@
           <iron-ajax auto id="authorizeRequest" url="/backend/api/authorization" handle-as="json" on-response="handleResponse" on-error="handleError"
           loading="{{isLoading}}" body="[[userParams(username, token)]]" method="POST" with-credentials content-type="application/json"
           debounce-duration="300"></iron-ajax>
-          Authorisig user... <br/>
-          <small>Does this take longer than 5 seconds? Try reloading the page.<br /></small>
+          {{localize('authorising_user')}} <br/>
+          <small>{{localize('authorising_user_subtext')}}<br /></small>
           <template is="dom-if" if="{{isLoading}}">
             <paper-spinner-lite active></paper-spinner-lite>
           </template>
@@ -45,13 +47,13 @@
   </template>
 
   <script>
-    class AuthorizePage extends Polymer.Element {
+    class AuthorizePage extends Polymer.mixinBehaviors([Polymer.AppLocalizeBehavior], Polymer.Element) {
       static get is() { return 'authorize-page'; }
       static get properties() {
         return {
           isLoading: {
             type: Boolean,
-            value: false
+            value: true
           },
           userdata: {
             type: String,
@@ -64,6 +66,11 @@
           loggedIn: Boolean,
           hasBeenAuthorised: Boolean
         };
+      }
+
+      connectedCallback() {
+        super.connectedCallback();
+        this.loadResources(this.resolveUrl('../../locales.json'));
       }
 
       _onUserdataChanged() {
@@ -86,13 +93,13 @@
       }
 
       handleResponse(data) {
-        this.succesToast = "User is authorized!";
+        this.succesToast = this.localize('user_authorized');
         this.loggedIn = true;
         this.hasBeenAuthorised = true;
       }
 
       handleError(data) {
-        this.errorToast = "User is not authorized!";
+        this.errorToast = this.localize('user_not_authorized');
         this.loggedIn = false;
         this.hasBeenAuthorised = true;
         window.history.replaceState({}, null, '#/login');
