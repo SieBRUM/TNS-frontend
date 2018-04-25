@@ -1,5 +1,6 @@
 {
     "en": {
+        "app_title":"TNS Web application",
         "hello": "Hello there",
         "username": "Username",
         "password": "Password",
@@ -9,9 +10,20 @@
         "user_not_authorized": "User not authorised!",
         "invalid_login_details": "Invalid username and/or password!",
         "authorising_user": "Authorising user",
-        "authorising_user_subtext": "Does this take longer than 5 seconds? Try reloading the page."
+        "authorising_user_subtext": "Does this take longer than 5 seconds? Try reloading the page.",
+        "access_level": "Access level",
+        "enabled": "Enabled",
+        "edit": "Edit",
+        "users": "Users",
+        "yes": "Yes",
+        "no": "No",
+        "save": "Save",
+        "cancel": "Cancel",
+        "new_password": "New password",
+        "last_login": "Last login"
     },
     "nl": {
+        "app_title": "TNS Web applicatie",
         "hello": "Hoi daar",
         "username": "Gebruikersnaam",
         "password": "Wachtwoord",
@@ -21,6 +33,16 @@
         "user_not_authorized": "Gebruiker niet geauthoriseerd!",
         "invalid_login_details": "Ongeldige gebruikersnaam en/of wachtwoord",
         "authorising_user":"Gebruiker autoriseren",
-        "authorising_user_subtext": "Duurt dit langer dan 5 seconden? Herlaad dan de pagina."
+        "authorising_user_subtext": "Duurt dit langer dan 5 seconden? Herlaad dan de pagina.",
+        "access_level": "Toegangsniveau",
+        "enabled": "Geactiveerd",
+        "edit": "Wijzig",
+        "users": "Gebruikers",
+        "yes": "Ja",
+        "no": "Nee",
+        "save":"Opslaan",
+        "cancel": "Annuleer",
+        "new_password": "Nieuw wachtwoord",
+        "last_login": "Laatste login"
     }
 }

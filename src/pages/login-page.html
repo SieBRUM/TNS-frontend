@@ -31,7 +31,7 @@
     <div class="card">
       <h1>Login</h1>
       <paper-input label="{{localize('username')}}" value="{{username}}"></paper-input>
-      <paper-input label="{{localize('password')}}" type="password" value="{{password}}"></paper-input>
+      <paper-input label="{{localize('password')}}" type="password" value="{{password}}" on-keydown="checkForEnter"></paper-input>
       <template is="dom-if" if="{{!isLoading}}">
         <paper-button raised on-tap="onLogin">Login!</paper-button>
       </template>
@@ -74,6 +74,7 @@
         };
 
         this.userdata = JSON.stringify(loginObject);
+        this.loggedIn = true;
 
         if (data.detail.xhr.response.LastLogin != null) {
           this.succesToast = this.localize('login', 'name', loginObject.username, 'accesslevel', loginObject.accesslevel, 'lastlogin', data.detail.xhr.response.LastLogin);
@@ -101,6 +102,12 @@
         var user = JSON.parse(userdata);
         return `Logged in as ${user.username}, ${user.accesslevel}, ${user.accesstoken}!`;
         this.loggedIn = true;
+      }
+
+      checkForEnter(event) {
+        if (event.keyCode === 13) {
+          this.onLogin();
+        }
       }
     }
 
