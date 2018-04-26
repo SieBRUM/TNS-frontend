@@ -20,7 +20,8 @@
         "save": "Save",
         "cancel": "Cancel",
         "new_password": "New password",
-        "last_login": "Last login"
+        "last_login": "Last login",
+        "wheelchair_configurator": "Wheelchair configurator"
     },
     "nl": {
         "app_title": "TNS Web applicatie",
@@ -43,6 +44,7 @@
         "save":"Opslaan",
         "cancel": "Annuleer",
         "new_password": "Nieuw wachtwoord",
-        "last_login": "Laatste login"
+        "last_login": "Laatste login",
+        "wheelchair_configurator": "Rolstoel configurator"
     }
 }

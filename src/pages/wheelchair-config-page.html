@@ -1,0 +1,228 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../bower_components/iron-form/iron-form.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="../../bower_components/brum-global-variable/brum-global-variable.html">
+<link rel="import" href="../../bower_components/paper-spinner/paper-spinner-lite.html">
+<link rel="import" href="../../bower_components/app-storage/app-localstorage/app-localstorage-document.html">
+<link rel="import" href="../shared-styles.html">
+<link rel="import" href="../../bower_components/app-localize-behavior/app-localize-behavior.html">
+<link rel="import" href="../../bower_components/paper-datatable-api/paper-datatable-api.html">
+<link rel="import" href="../../bower_components/paper-datatable-api/paper-datatable-api-column.html">
+<link rel="import" href="../../bower_components/paper-spinner/paper-spinner-lite.html">
+<link rel="import" href="../../bower_components/iron-icons/editor-icons.html">
+<link rel="import" href="../../bower_components/vaadin-dialog/vaadin-dialog.html">
+<link rel="import" href="../../bower_components/paper-checkbox/paper-checkbox.html">
+<link rel="import" href="../../bower_components/paper-collapse-item/paper-collapse-item.html">
+<link rel="import" href="../../bower_components/paper-collapse-item/paper-collapse-group.html">
+<link rel="import" href="../../bower_components/l2t-paper-color/l2t-paper-color.html">
+
+<dom-module id="wheelchair-config-page">
+  <template>
+    <style include="shared-styles">
+      :host {
+        display: block;
+
+        padding: 10px;
+      }
+
+      .center {
+        text-align: center;
+      }
+
+      .dialog {
+        width: 80vh;
+      }
+
+      .pull-right {
+        float: right;
+      }
+
+      .input {
+        width: 60%;
+        float: left;
+      }
+
+      paper-button.confirm {
+        background-color: #28A745;
+        color: white;
+      }
+
+      paper-button.dismiss {
+        color: #ff0033;
+      }
+
+      .collapsebox {
+        width: 60%;
+        float: right;
+        align-content: flex-end;
+        margin-right: 20px;
+        padding: 5px;
+      }
+
+      @media only screen and (max-width: 640px) {
+        .card {
+          flex-direction: column;
+        }
+        .input {
+          width: 100%;
+          float: left;
+        }
+        .collapsebox {
+          width: 100%;
+        }
+      }
+
+      .card {
+        margin: 24px;
+        padding: 16px;
+        color: #757575;
+        border-radius: 5px;
+        background-color: #fff;
+        box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12), 0 3px 1px -2px rgba(0, 0, 0, 0.2);
+        -webkit-column-count: 3;
+        -moz-column-count: 3;
+        column-count: 3;
+        column-gap: 10px;
+        display: flex;
+      }
+    </style>
+    <brum-global-variable key="successtoast" value="{{succesToast}}"></brum-global-variable>
+    <brum-global-variable key="errortoast" value="{{errorToast}}"></brum-global-variable>
+    <brum-global-variable key="loggedin" value="{{loggedIn}}"></brum-global-variable>
+    <brum-global-variable key="language" value="{{language}}"></brum-global-variable>
+
+    <div class="card">
+      <div>
+        <img src=".\images\activatoradl_transp.png" style="width: 300px; height:300px; margin-right: 5px;">
+        <img src=".\images\A-I_wheelchair.png" style="width: 280px; height:150px; margin-right: 5px;">
+        <br/>
+        <br/>
+        <paper-button class="cancel">{{localize('cancel')}}</paper-button>
+        <paper-button class="confirm">{{localize('save')}}</paper-button>
+      </div>
+      <div class="input">
+        <paper-input label="A"></paper-input>
+        <paper-input label="B"></paper-input>
+        <paper-input label="C"></paper-input>
+        <paper-input label="D"></paper-input>
+        <paper-input label="E"></paper-input>
+        <paper-input label="F"></paper-input>
+        <paper-input label="G"></paper-input>
+        <paper-input label="H"></paper-input>
+        <paper-input label="I"></paper-input>
+      </div>
+      <div class="collapsebox">
+        <iron-ajax auto url="/backend/api/article" handle-as="json" on-response="handleResponse">
+        </iron-ajax>
+        <paper-collapse-item id="articleCollapse" header="Artikelen">
+          <template is="dom-repeat" items="[[articles]]">
+            <paper-checkbox banaan$="[[index]]" on-tap="collapse">[[item.Description]]
+              <b>€[[item.Price]]</b>
+            </paper-checkbox>
+            <br />
+          </template>
+        </paper-collapse-item>
+        <paper-collapse-item header="Voorwielen">
+          <template is="dom-repeat" items="[[frontwheels]]">
+            <paper-checkbox>
+              <iron-label>[[item.Description]]</iron-label>
+            </paper-checkbox>
+            <br/>
+          </template>
+        </paper-collapse-item>
+        <paper-collapse-item header="Hoepels">
+          <template is="dom-repeat" items="[[hoops]]">
+            <paper-checkbox>
+              <iron-label>[[item.Description]]</iron-label>
+              <iron-label style="text-align: right;">€[[item.Price]]</iron-label>
+            </paper-checkbox>
+            <br />
+          </template>
+        </paper-collapse-item>
+        <paper-collapse-item header="Wielen">
+          <template is="dom-repeat" items="[[wheels]]">
+            <paper-checkbox>
+              <iron-label>[[item.Description]]</iron-label>
+              <iron-label style="text-align: right;">€[[item.Price]]</iron-label>
+            </paper-checkbox>
+            <br />
+          </template>
+        </paper-collapse-item>
+        <paper-collapse-item header="Banden">
+          <template is="dom-repeat" items="[[tires]]">
+            <paper-checkbox>
+              <iron-label>[[item.Description]]</iron-label>
+            </paper-checkbox>
+            <br/>
+          </template>
+        </paper-collapse-item>
+        <paper-collapse-item header="Kleur">
+          <l2t-paper-color hide-advanced></l2t-paper-color>
+        </paper-collapse-item>
+      </div>
+    </div>
+  </template>
+
+  <script>
+    /**
+     * @customElement
+     * @polymer
+     */
+
+    class WheelchairConfigPage extends Polymer.mixinBehaviors([Polymer.AppLocalizeBehavior], Polymer.Element) {
+      static get is() {
+        return 'wheelchair-config-page';
+      }
+      static get properties() {
+        return {
+          language: String,
+
+          articles: {
+            type: Array
+          },
+          wheels: {
+            type: Array
+          },
+          frontwheels: {
+            type: Array
+          },
+          hoops: {
+            type: Array
+          },
+          tires: {
+            type: Array
+          },
+          ralcolors: {
+            type: Array
+          },
+        };
+      }
+      handleResponse(data, request) {
+        console.log(request.response);
+        this.articles = request.response.article;
+        this.wheels = request.response.wheels;
+        this.frontwheels = request.response.frontwheels;
+        this.hoops = request.response.hoops;
+        this.tires = request.response.tires;
+        this.ralcolors = request.response.ralcolors;
+        console.log(this.ralcolors);
+      }
+      collapse(event) {
+        this.$.articleCollapse._toggleOpened(null);
+        var index = event.target.attributes.getNamedItem('banaan').value;
+        var itemSelected = this.articles[index].Description;
+        this.$.articleCollapse.header = itemSelected;
+        console.log(itemSelected);
+      }
+      connectedCallback() {
+        super.connectedCallback();
+        this.loadResources(this.resolveUrl('../../locales.json'));
+      }
+    }
+
+    window.customElements.define(WheelchairConfigPage.is, WheelchairConfigPage);
+  </script>
+</dom-module>
