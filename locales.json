@@ -1,6 +1,6 @@
 {
     "en": {
-        "app_title":"TNS Web application",
+        "app_title": "TNS Web application",
         "hello": "Hello there",
         "username": "Username",
         "password": "Password",
@@ -20,7 +20,18 @@
         "save": "Save",
         "cancel": "Cancel",
         "new_password": "New password",
-        "last_login": "Last login"
+        "last_login": "Last login",
+        "save_edit_user_error": "Something went wrong while editting this user.",
+        "save_edit_user_success": "User '{name}' has been saved!",
+        "edit_user_title": "Edit user",
+        "add_user_title": "Add user",
+        "add": "Add",
+        "password_unchanged": "Keep current password",
+        "username_empty_error": "Username cannot be empty.",
+        "password_empty_error": "Password cannot be empty",
+        "user_never_logged_in": "User never logged in!",
+        "add_user_success": "User '{name}' has been added!",
+        "add_user_error": "Something went wrong while addint the user; ({error})"
     },
     "nl": {
         "app_title": "TNS Web applicatie",
@@ -32,7 +43,7 @@
         "user_authorized": "Gebruiker geauthoriseerd!",
         "user_not_authorized": "Gebruiker niet geauthoriseerd!",
         "invalid_login_details": "Ongeldige gebruikersnaam en/of wachtwoord",
-        "authorising_user":"Gebruiker autoriseren",
+        "authorising_user": "Gebruiker autoriseren",
         "authorising_user_subtext": "Duurt dit langer dan 5 seconden? Herlaad dan de pagina.",
         "access_level": "Toegangsniveau",
         "enabled": "Geactiveerd",
@@ -40,9 +51,20 @@
         "users": "Gebruikers",
         "yes": "Ja",
         "no": "Nee",
-        "save":"Opslaan",
+        "save": "Opslaan",
         "cancel": "Annuleer",
         "new_password": "Nieuw wachtwoord",
-        "last_login": "Laatste login"
+        "last_login": "Laatste login",
+        "save_edit_user_error": "Er is iets mis gegaan tijdens het wijzigen van de gebruiker.",
+        "save_edit_user_success": "Gebruiker '{name}' is opgeslagen!",
+        "edit_user_title": "Wijzig gebruiker",
+        "add_user_title": "Gebruiker toevoegen",
+        "add": "Toevoegen",
+        "password_unchanged": "Huidige wachtwoord behouden",
+        "username_empty_error": "Gebruikersnaam kan niet leeg zijn.",
+        "password_empty_error": "Wachtwoord kan niet leeg zijn.",
+        "user_never_logged_in": "Gebruiker is nog niet ingelogd!",
+        "add_user_success": "Gebruiker '{name}' is toegevoegd!",
+        "add_user_error": "Er is iets mis gegaan tijdens het toevoegen van de gebruiker; ({error})"
     }
 }

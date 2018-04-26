@@ -123,7 +123,9 @@
     Polymer.setPassiveTouchGestures(true);
 
     class TnsApp extends Polymer.mixinBehaviors([Polymer.AppLocalizeBehavior], Polymer.Element) {
-      static get is() { return 'tns-app'; }
+      static get is() {
+        return 'tns-app';
+      }
 
       static get properties() {
         return {
@@ -147,7 +149,7 @@
           hasBeenAuthorised: {
             type: Boolean,
             value: false,
-            observer: '_onAuthorisedChanged'
+            observer: '_onLoginChanged'
           },
           language: {
             value: 'nl'
@@ -165,9 +167,9 @@
         super.connectedCallback();
         this.loadResources(this.resolveUrl('../locales.json'));
       }
-      
+
       toPicture(language) {
-        if(language == 'en') {
+        if (language == 'en') {
           return "../../images/dutch.png";
         } else {
           return "../../images/english.png";
@@ -176,12 +178,12 @@
       _routePageChanged(page) {
         // If no page was found in the route data, page will be an empty string.
         // Default to 'view1' in that case.
-        if(!this.hasBeenAuthorised) {
+        if (!this.hasBeenAuthorised) {
           this.page = 'authorize';
           return;
         }
 
-        if(!this.loggedIn) {
+        if (!this.loggedIn) {
           this.page = 'login';
         }
 
@@ -212,22 +214,8 @@
         this.loggedIn = false;
       }
 
-      _onAuthorisedChanged() {
-        if(this.hasBeenAuthorised && !this.loggedIn) {
-          if(this.page != 'login') {
-            this.page = 'login';
-          }
-        }
-
-        if(this.hasBeenAuthorised && this.loggedIn) {
-          window.history.replaceState({}, null, '#/users');
-          window.dispatchEvent(new CustomEvent('location-changed'));    
-          this.page = "users";          
-        }
-      }
-
       _onLanguageChanged() {
-        if(this.language == 'en') {
+        if (this.language == 'en') {
           this.language = 'nl';
         } else {
           this.language = 'en'
@@ -235,14 +223,18 @@
       }
 
       _onLoginChanged() {
-        if(!this.loggedIn) {
+        if (!this.loggedIn && this.hasBeenAuthorised) {
           window.history.replaceState({}, null, '#/login');
-          window.dispatchEvent(new CustomEvent('location-changed'));  
+          window.dispatchEvent(new CustomEvent('location-changed'));
           this.page = 'login';
-        } else {
-          window.history.replaceState({}, null, '#/users');
-          window.dispatchEvent(new CustomEvent('location-changed'));  
-          this.page = 'users';
+        } else if (this.loggedIn && this.hasBeenAuthorised) {
+          if (this.routeData.page && this.routeData.page != "login") {
+            this.page = this.routeData.page;
+          } else {
+            this.page = "users";
+            window.history.replaceState({}, null, '#/users');
+            window.dispatchEvent(new CustomEvent('location-changed'));
+          }
         }
       }
     }
