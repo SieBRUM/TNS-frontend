@@ -25,7 +25,12 @@
     "paper-spinner": "PolymerElements/paper-spinner#^2.1.0",
     "app-storage": "PolymerElements/app-storage#^2.1.1",
     "app-localize-behavior": "PolymerElements/app-localize-behavior#^2.0.1",
-    "paper-toggle-button": "PolymerElements/paper-toggle-button#^2.1.1"
+    "paper-toggle-button": "PolymerElements/paper-toggle-button#^2.1.1",
+    "serviceworker-helpers": "morbidick/serviceworker-helpers#^2.0.6",
+    "paper-datatable-api": "RoXuS/paper-datatable-api#^2.0.15",
+    "iron-icons": "PolymerElements/iron-icons#^2.1.1",
+    "vaadin-dialog": "vaadin/vaadin-dialog#^2.0.0",
+    "paper-dropdown-menu": "PolymerElements/paper-dropdown-menu#^2.1.0"
   },
   "resolutions": {
     "polymer": "^2.0.0"
