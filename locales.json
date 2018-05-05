@@ -31,7 +31,14 @@
         "password_empty_error": "Password cannot be empty",
         "user_never_logged_in": "User never logged in!",
         "add_user_success": "User '{name}' has been added!",
-        "add_user_error": "Something went wrong while addint the user; ({error})"
+        "add_user_error": "Something went wrong while addint the user; ({error})",
+        "wheelchairs": "Wheelchairs",
+        "add_wheelchair_title": "Add wheelchair",
+        "customer": "Customer",
+        "serial_number": "Serial number",
+        "employee": "Employee",
+        "order_date": "Order date",
+        "wheelchair_not_ordered": "Wheelchair not ordered yet!"
     },
     "nl": {
         "app_title": "TNS Web applicatie",
@@ -65,6 +72,13 @@
         "password_empty_error": "Wachtwoord kan niet leeg zijn.",
         "user_never_logged_in": "Gebruiker is nog niet ingelogd!",
         "add_user_success": "Gebruiker '{name}' is toegevoegd!",
-        "add_user_error": "Er is iets mis gegaan tijdens het toevoegen van de gebruiker; ({error})"
+        "add_user_error": "Er is iets mis gegaan tijdens het toevoegen van de gebruiker; ({error})",
+        "wheelchairs": "Rolstoelen",
+        "add_wheelchair_title": "Rolstoel toevoegen",
+        "customer": "Klant",
+        "serial_number": "Serienummer",
+        "employee": "Medewerker",
+        "order_date": "Aankoopdatum",
+        "wheelchair_not_ordered": "Rolstoel is nog niet besteld!"
     }
 }

@@ -90,6 +90,7 @@
           </template>
           <template is="dom-if" if="[[loggedIn]]">
             <a name="users" href="#[[rootPath]]users">{{localize('users')}}</a>
+            <a name="wheelchairs" href="#[[rootPath]]wheelchairs">{{localize('wheelchairs')}}</a>
           </template>
         </iron-selector>
       </app-drawer>
@@ -111,6 +112,7 @@
           <login-page name="login"></login-page>
           <authorize-page name="authorize"></authorize-page>
           <users-page name="users"></users-page>
+          <wheelchairs-page name="wheelchairs"></wheelchairs-page>
           <my-view404 name="view404"></my-view404>
         </iron-pages>
       </app-header-layout>
