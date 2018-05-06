@@ -32,7 +32,9 @@
     "vaadin-dialog": "vaadin/vaadin-dialog#^2.0.0",
     "paper-dropdown-menu": "PolymerElements/paper-dropdown-menu#^2.1.0",
     "paper-collapse-item": "Collaborne/paper-collapse-item#^2.3.0",
-    "l2t-paper-color": "Link2Twenty/l2t-paper-color#^1.0.4"
+    "l2t-paper-color": "Link2Twenty/l2t-paper-color#^1.0.4",
+    "three-import": "NicolasRannou/three-import#^82.0.0",
+    "three-polymer": "lakopite/three-polymer#^0.2.1"
   },
   "resolutions": {
     "polymer": "^2.0.0"

@@ -18,6 +18,7 @@
 <link rel="import" href="../../bower_components/paper-collapse-item/paper-collapse-item.html">
 <link rel="import" href="../../bower_components/paper-collapse-item/paper-collapse-group.html">
 <link rel="import" href="../../bower_components/l2t-paper-color/l2t-paper-color.html">
+<link rel="import" href="../../bower_components/three-import/three-import.html">
 
 <dom-module id="wheelchair-config-page">
   <template>
@@ -88,6 +89,16 @@
         column-gap: 10px;
         display: flex;
       }
+
+      #renderCanvas {
+
+        width: 100%;
+
+        height: 100%;
+
+        touch-action: none;
+
+      }
     </style>
     <brum-global-variable key="successtoast" value="{{succesToast}}"></brum-global-variable>
     <brum-global-variable key="errortoast" value="{{errorToast}}"></brum-global-variable>
@@ -95,8 +106,13 @@
     <brum-global-variable key="language" value="{{language}}"></brum-global-variable>
 
     <div class="card">
+      <template is="dom-if" if="[[isLoading]]">
+        <div class="center">
+          <paper-spinner-lite active></paper-spinner-lite>
+        </div>
+      </template>
       <div>
-        <img src=".\images\car_transparant_test.png" style="width: 300px; height:150px; margin-right: 5px;background-color: #ff0033">
+        <div id="canvas" style="width: 200px; height: 200px;"></div>
         <img src=".\images\A-I_wheelchair.png" style="width: 280px; height:150px; margin-right: 5px;">
         <br/>
         <br/>
@@ -167,14 +183,49 @@
   </template>
 
   <script>
-    /**
-     * @customElement
-     * @polymer
-     */
-
     class WheelchairConfigPage extends Polymer.mixinBehaviors([Polymer.AppLocalizeBehavior], Polymer.Element) {
       static get is() {
         return 'wheelchair-config-page';
+      }
+      ready() {
+        super.ready();
+        var camera, scene, renderer;
+
+        var geometry, material, mesh;
+        camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 10);
+
+        camera.position.z = 1;
+
+
+
+        scene = new THREE.Scene();
+
+
+
+        geometry = new THREE.BoxGeometry(0.2, 0.2, 0.2);
+
+        material = new THREE.MeshNormalMaterial();
+
+
+
+        mesh = new THREE.Mesh(geometry, material);
+
+        scene.add(mesh);
+
+
+
+        renderer = new THREE.WebGLRenderer({
+          antialias: true
+        });
+
+        renderer.setSize(200, 200);
+
+
+        var canvas = this.shadowRoot.querySelector('#canvas');
+
+        canvas.appendChild(renderer.domElement);
+
+        console.log(canvas);
       }
       static get properties() {
         return {
