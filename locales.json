@@ -31,7 +31,7 @@
         "password_empty_error": "Password cannot be empty",
         "user_never_logged_in": "User never logged in!",
         "add_user_success": "User '{name}' has been added!",
-        "add_user_error": "Something went wrong while addint the user; ({error})",
+        "add_user_error": "Something went wrong while adding the user; ({error})",
         "wheelchairs": "Wheelchairs",
         "add_wheelchair_title": "Add wheelchair",
         "customer": "Customer",
