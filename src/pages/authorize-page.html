@@ -34,7 +34,7 @@
       <div class="center">
         <div class="card">        
           <iron-ajax auto id="authorizeRequest" url="/backend/api/authorization" handle-as="json" on-response="handleResponse" on-error="handleError"
-          loading="{{isLoading}}" body="[[userParams(username, token)]]" method="POST" with-credentials content-type="application/json"
+          loading="{{isLoading}}" headers="[[userParams(username, token)]]" method="POST" with-credentials content-type="application/json"
           debounce-duration="300"></iron-ajax>
           {{localize('authorising_user')}} <br/>
           <small>{{localize('authorising_user_subtext')}}<br /></small>
@@ -85,11 +85,11 @@
 
       userParams(username, token) {
         this.isLoading = true;
-        var body = {
+        var header = {
           Username: username,
           Token: token
         }
-        return JSON.stringify(body);
+        return header;
       }
 
       handleResponse(data) {
