@@ -187,6 +187,7 @@
 
         if (!this.loggedIn) {
           this.page = 'login';
+          return;
         }
 
         this.page = page || 'login';
