@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
+
+  <title>users-page</title>
+
+  <script src="../bower_components/webcomponentsjs/webcomponents-lite.js"></script>
+  <script src="../bower_components/web-component-tester/browser.js"></script>
+
+  <!-- Import the element to test -->
+  <link rel="import" href="../src/pages/users-page.html">
+</head>
+
+<body>
+  <test-fixture id="BasicView">
+    <template>
+      <users-page></users-page>
+    </template>
+  </test-fixture>
+
+  <script>
+    suite('users-page tests', function () {
+      test('Sanity test', function () {
+        expect(1).to.not.equal(2);
+        expect(1).to.equal(1);
+        expect(true).to.be.true;
+      });
+
+      test('ficture should be A11y approved', function () {
+        a11ySuite('BasicView');
+      });
+
+      test('fixture creation should be succesful', function () {
+        var element = fixture('BasicView');
+        expect(element.newUser, {});
+        expect(element.is, 'users-page');
+      });
+
+      test('should return correct time', function () {
+        var element = fixture('BasicView');
+        element.language = 'en';
+        expect(element.toHumanReadableTime("This is a time")).to.equal(' his is a time');
+      });
+
+      test('should set new user', function () {
+        var element = fixture('BasicView');
+        expect(element.newUser).to.deep.equal({});
+        var spy = sinon.spy(element, 'onAddUser');
+        element.onAddUser();
+        expect(element.newUser).to.deep.equal({
+          Id: 0,
+          AccessLevel: "Default",
+          IsActive: true
+        });
+        expect(spy).to.have.been.called;
+      });
+
+      test('Should return 1 because user is admin', function () {
+        var element = fixture('BasicView');
+        var spy = sinon.spy(element, 'accesslevelToNumber');
+        expect(element.accesslevelToNumber("Admin")).to.equal(1);
+        expect(spy).to.have.been.called;
+      });
+
+      test('Should return 0 because user is not an admin', function () {
+        var element = fixture('BasicView');
+        expect(element.accesslevelToNumber("Default")).to.equal(0);
+      });
+
+      test('Should return null because user data does not exist', function () {
+        var element = fixture('BasicView');
+        expect(element.userParams({})).to.equal(null);
+      });
+
+      test('Should return correct userdata because user data does not exist', function () {
+        var element = fixture('BasicView');
+        expect(element.userParams(JSON.stringify({
+          username: "Test-user",
+          accesstoken: "abc-def-ghi-jkl-1337"
+        }))).to.deep.equal({
+          Username: "Test-user",
+          Token: "abc-def-ghi-jkl-1337"
+        });
+      });
+
+      test('Should handle response correcly', function () {
+        var element = fixture('BasicView');
+        element.handleResponse(null, {
+          response: [{
+            username: "Hey"
+          }]
+        });
+
+        expect(element.users).to.deep.equal([{
+          username: "Hey"
+        }]);
+      });
+
+      test('Should return JSON string correctly', function () {
+        var element = fixture('BasicView');
+        expect(element.editUserBody({})).to.equal('{}');
+        expect(element.editUserBody({
+          Hey: "Hai"
+        })).to.equal('{"Hey":"Hai"}');
+      });
+
+      test('Should set correct edit user data', function () {
+        var element = fixture('BasicView');
+        element.selectedUser = {};
+        element.users = [{
+          Id: 1,
+          Username: "Cool Username"
+        }];
+
+        var event = {
+          target: {
+            getAttribute(value) {
+              return 1;
+            }
+          }
+        };
+        element.onEdit(event);
+        expect(element.selectedUser).to.deep.equal({
+          Id: 1,
+          Username: "Cool Username"
+        });
+      });
+    });
+  </script>
+</body>
+
+</html>
