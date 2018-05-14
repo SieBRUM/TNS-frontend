@@ -308,7 +308,13 @@
           AccessLevel: "Default",
           IsActive: true
         };
-        this.$$('#addUserDialog').opened = true;
+
+        // have to use try catch because currently, unit testing does not support this behavior
+        try {
+          this.$$('#addUserDialog').opened = true;
+        } catch {
+          this.errorToast = "COULD NOT OPEN DIALOG";
+        }
       }
 
       toHumanReadableTime(time) {

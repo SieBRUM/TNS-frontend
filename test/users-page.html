@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
+
+  <title>users-page</title>
+
+  <script src="../bower_components/webcomponentsjs/webcomponents-lite.js"></script>
+  <script src="../bower_components/web-component-tester/browser.js"></script>
+
+  <!-- Import the element to test -->
+  <link rel="import" href="../src/pages/users-page.html">
+</head>
+
+<body>
+  <test-fixture id="BasicView">
+    <template>
+      <users-page></users-page>
+    </template>
+  </test-fixture>
+
+  <script>
+    suite('users-page tests', function () {
+      test('Sanity test', function () {
+        expect(1).to.not.equal(2);
+        expect(1).to.equal(1);
+        expect(true).to.be.true;
+      });
+
+      test('ficture should be A11y approved', function () {
+        a11ySuite('BasicView');
+      });
+
+      test('fixture creation should be succesful', function () {
+        var element = fixture('BasicView');
+        expect(element.newUser, {});
+        expect(element.is, 'users-page');
+      });
+
+      test('should return error because user never logged in', function () {
+        var element = fixture('BasicView');
+        element.language = 'en';
+        expect(element.toHumanReadableTime("This is a time")).to.equal(' his is a time');
+      });
+
+      test('should set new user', function () {
+        var element = fixture('BasicView');
+        expect(element.newUser).to.deep.equal({});
+        element.onAddUser();
+        expect(element.newUser).to.deep.equal({
+          Id: 0,
+          AccessLevel: "Default",
+          IsActive: true
+        });
+      });
+
+      test('Should return 1 because user is admin', function () {
+        var element = fixture('BasicView');
+        expect(element.accesslevelToNumber("Admin")).to.equal(1);
+      });
+
+      test('Should return 0 because user is not an admin', function () {
+        var element = fixture('BasicView');
+        expect(element.accesslevelToNumber("Default")).to.equal(0);
+      });
+    });
+  </script>
+</body>
+
+</html>
