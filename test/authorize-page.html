@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
+
+  <title>authorize-page</title>
+
+  <script src="../bower_components/webcomponentsjs/webcomponents-lite.js"></script>
+  <script src="../bower_components/web-component-tester/browser.js"></script>
+
+  <!-- Import the element to test -->
+  <link rel="import" href="../src/pages/authorize-page.html">
+</head>
+
+<body>
+  <test-fixture id="BasicView">
+    <template>
+      <authorize-page></authorize-page>
+    </template>
+  </test-fixture>
+
+  <script>
+    suite('authorize-page tests', function () {
+      test('Sanity test', function () {
+        expect(1).to.not.equal(2);
+        expect(1).to.equal(1);
+        expect(true).to.be.true;
+      });
+
+      test('ficture should be A11y approved', function () {
+        a11ySuite('BasicView');
+      });
+
+      test('Should call when user is changed', function () {
+        var element = fixture('BasicView');
+        element.userdata = "{}";
+        element.username = "";
+        element.token = "";
+        var spy = sinon.spy(element, '_onUserdataChanged');
+        element.userdata =
+          `{
+          "username": "Test-user",
+          "accesstoken": "1234-token"
+        }`;
+        expect(spy).to.have.been.called;
+        expect(element.username).to.equal("Test-user");
+        expect(element.token).to.equal("1234-token");
+      });
+
+      test('Should return correct user header params', function () {
+        var element = fixture('BasicView');
+        element.isLoading = false;
+        expect(element.userParams("Test-user", "testing-token")).to.deep.equal({
+          Username: "Test-user",
+          Token: "testing-token"
+        });
+        expect(element.isLoading).to.be.true;
+      });
+
+      test('Should set variables based on correct response', function () {
+        var element = fixture('BasicView');
+        element.loggedIn = false;
+        element.hasBeenAuthorised = false;
+        element.handleResponse(null);
+        expect(element.loggedIn).to.be.true;
+        expect(element.hasBeenAuthorised).to.be.true;
+      });
+    });
+  </script>
+</body>
+
+</html>

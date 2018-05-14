@@ -1,0 +1,22 @@
+Start with "Suite"
+suite('users-page tests', function () {
+});
+
+Sanity tests
+test('Sanity test', function () {
+    expect(1).to.not.equal(2);
+    expect(1).to.equal(1);
+    expect(true).to.be.true;
+});
+
+A11y test
+test('ficture should be A11y approved', function () {
+    a11ySuite('BasicView');
+});
+
+
+spies
+var spy = sinon.spy(element, 'functionName');
+expect(spy).to.have.been.called;
+
+HTML selectors do not work. try/catch workaround.

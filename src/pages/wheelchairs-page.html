@@ -153,12 +153,12 @@
 
       userParams(userdata) {
         if (userdata == null || userdata == "") {
-          return;
+          return null;
         }
         var user = JSON.parse(userdata);
 
         if (Object.keys(user).length == 0) {
-          return;
+          return null;
         }
 
         var requestBody = {

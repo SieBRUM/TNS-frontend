@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
+
+  <title>tns-app</title>
+
+  <script src="../bower_components/webcomponentsjs/webcomponents-lite.js"></script>
+  <script src="../bower_components/web-component-tester/browser.js"></script>
+
+  <!-- Import the element to test -->
+  <link rel="import" href="../src/tns-app.html">
+</head>
+
+<body>
+  <test-fixture id="BasicView">
+    <template>
+      <tns-app></tns-app>
+    </template>
+  </test-fixture>
+
+  <script>
+    suite('tns-app tests', function () {
+      test('Sanity test', function () {
+        expect(1).to.not.equal(2);
+        expect(1).to.equal(1);
+        expect(true).to.be.true;
+      });
+
+      test('ficture should be A11y approved', function () {
+        a11ySuite('BasicView');
+      });
+
+      test('Should return correct picture', function () {
+        var element = fixture('BasicView');
+        expect(element.toPicture("en")).to.equal("../../images/dutch.png");
+        expect(element.toPicture("nl")).to.equal("../../images/english.png");
+      });
+
+      test('Should do routing correctly', function () {
+        var element = fixture('BasicView');
+        element.page = "login";
+        element.hasBeenAuthorised = false;
+        element.loggedIn = false;
+        element._routePageChanged("users");
+        expect(element.page).to.equal('authorize');
+        element.hasBeenAuthorised = true;
+        element.loggedIn = false;
+        element._routePageChanged("users");
+        expect(element.page).to.equal('login');
+        element.loggedIn = true;
+        element._routePageChanged("users");
+        expect(element.page).to.equal('users');
+      });
+
+      test('Should set page to 404', function () {
+        var element = fixture('BasicView');
+        element.page = "login";
+        element._showPage404();
+        expect(element.page).to.equal("view404");
+      });
+
+      test('Should logout user', function () {
+        var element = fixture('BasicView');
+        element.userdata = {
+          Username: "Test-user"
+        };
+        element.loggedIn = true;
+        element.logout();
+        expect(element.loggedIn).to.be.false;
+        expect(element.userdata).to.deep.equal({});
+      });
+
+      test('Should change language to correct one', function () {
+        var element = fixture('BasicView');
+        element.language = "en";
+        element._onLanguageChanged();
+        expect(element.language).to.equal("nl");
+        element._onLanguageChanged();
+        expect(element.language).to.equal("en");
+      });
+    });
+  </script>
+</body>
+
+</html>
