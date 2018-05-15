@@ -63,7 +63,7 @@
     <app-localstorage-document key="userdata" data="{{userdata}}"></app-localstorage-document>
 
     <iron-ajax id="getallusers" url="/backend/api/users" handle-as="json" on-response="handleResponse" loading="{{isLoading}}"
-      headers="[[userParams(userdata)]]" method="GET" with-credentials content-type="application/json"></iron-ajax>
+      headers="[[userParams(userdata)]]" method="GET" with-credentials content-type="application/json" on-error="handleError"></iron-ajax>
     <iron-ajax id="saveUser" url="/backend/api/users" handle-as="json" on-response="onSaveResponse" on-error="onSaveError" loading="{{isLoading}}"
       headers="[[userParams(userdata)]]" method="POST" with-credentials content-type="application/json"></iron-ajax>
     <iron-ajax id="addUser" url="/backend/api/users" handle-as="json" on-response="onAddResponse" on-error="onAddError" loading="{{isLoading}}"
@@ -239,7 +239,7 @@
         this.selectedUser = JSON.parse(JSON.stringify(this.users.find(x => x.Id == selectedId)));
         try {
           this.$$('#editUserDialog').opened = true;
-        } catch {
+        } catch (err) {
           this.errorToast = "COULD NOT OPEN DIALOG";
         }
       }
@@ -271,8 +271,21 @@
         this.$$('#addUserDialog').opened = false;
       }
 
-      oSaveError(data, response) {
-        this.errorToast = this.localize('save_edit_user_error');
+      onSaveError(response, data) {
+        if (data.request.status == 403) {
+          this.$$('#editUserDialog').opened = false;
+          this.errorToast = this.localize('access_denied', 'error', data.request.response);
+          this.userdata = "{}";
+          this.loggedIn = false;
+        } else if (data.request.status == 401) {
+          this.$$('#editUserDialog').opened = false;
+          this.errorToast = this.localize('access_denied', 'error', data.request.response);
+          this.page = "wheelchairs";
+          window.history.replaceState({}, null, '#/wheelchairs');
+          window.dispatchEvent(new CustomEvent('location-changed'));
+        } else {
+          this.errorToast = this.localize('save_edit_user_error');
+        }
       }
 
       onSaveResponse(data, request) {
@@ -315,7 +328,7 @@
         // have to use try catch because currently, unit testing does not support this behavior
         try {
           this.$$('#addUserDialog').opened = true;
-        } catch {
+        } catch (err) {
           this.errorToast = "COULD NOT OPEN DIALOG";
         }
       }
@@ -333,8 +346,36 @@
         this.succesToast = this.localize('add_user_success', 'name', this.newUser.Username);
       }
 
-      onAddError(data, request) {
-        this.errorToast = this.localize('add_user_error', 'error', request.request.response);
+      onAddError(response, data) {
+        if (data.request.status == 403) {
+          this.$$('#addUserDialog').opened = false;
+          this.errorToast = this.localize('access_denied', 'error', data.request.response);
+          this.userdata = "{}";
+          this.loggedIn = false;
+        } else if (data.request.status == 401) {
+          this.$$('#addUserDialog').opened = false;
+          this.errorToast = this.localize('access_denied', 'error', data.request.response);
+          this.page = "wheelchairs";
+          window.history.replaceState({}, null, '#/wheelchairs');
+          window.dispatchEvent(new CustomEvent('location-changed'));
+        } else {
+          this.errorToast = this.localize('add_user_error', 'error', data.request.response);
+        }
+      }
+
+      handleError(response, data) {
+        if (data.request.status == 403) {
+          this.errorToast = this.localize('access_denied', 'error', data.request.response);
+          this.userdata = "{}";
+          this.loggedIn = false;
+        } else if (data.request.status == 401) {
+          this.errorToast = this.localize('access_denied', 'error', data.request.response);
+          this.page = "wheelchairs";
+          window.history.replaceState({}, null, '#/wheelchairs');
+          window.dispatchEvent(new CustomEvent('location-changed'));
+        } else {
+          this.errorToast = this.localize('unknown_error', 'error', data.request.response);
+        }
       }
     }
 

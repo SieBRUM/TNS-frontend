@@ -59,7 +59,7 @@
         var element = fixture('BasicView');
         element.page = "login";
         element._showPage404();
-        expect(element.page).to.equal("view404");
+        expect(element.page).to.equal("tns-404");
       });
 
       test('Should logout user', function () {
@@ -70,7 +70,7 @@
         element.loggedIn = true;
         element.logout();
         expect(element.loggedIn).to.be.false;
-        expect(element.userdata).to.deep.equal({});
+        expect(element.userdata).to.deep.equal('{}');
       });
 
       test('Should change language to correct one', function () {

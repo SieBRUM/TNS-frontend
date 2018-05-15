@@ -60,7 +60,7 @@
     <app-localstorage-document key="userdata" data="{{userdata}}"></app-localstorage-document>
 
     <iron-ajax id="getallwheelchairs" url="/backend/api/wheelchair" handle-as="json" on-response="handleResponse" loading="{{isLoading}}"
-      headers="[[userParams(userdata)]]" method="GET" with-credentials content-type="application/json"></iron-ajax>
+      headers="[[userParams(userdata)]]" method="GET" with-credentials content-type="application/json" on-error="handleError"></iron-ajax>
 
     <div class="card card-table">
       <h1>
@@ -171,6 +171,16 @@
 
       handleResponse(data, request) {
         this.wheelchairs = request.response;
+      }
+
+      handleError(response, data) {
+        if (data.request.status == 403) {
+          this.errorToast = this.localize('access_denied', 'error', data.request.response);
+          this.userdata = "{}";
+          this.loggedIn = false;
+        } else {
+          this.errorToast = this.localize('unknown_error', 'error', data.request.response);
+        }
       }
 
       _hasLanguageChanged() {
