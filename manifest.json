@@ -1,9 +1,8 @@
 {
-  "name": "My App",
-  "short_name": "My App",
-  "description": "My App description",
-  "icons": [
-    {
+  "name": "TNS Web application",
+  "short_name": "TNS Rijen",
+  "description": "TNS Web application",
+  "icons": [{
       "src": "images/manifest/icon-192x192.png",
       "sizes": "192x192",
       "type": "image/png"

@@ -38,7 +38,11 @@
         "serial_number": "Serial number",
         "employee": "Employee",
         "order_date": "Order date",
-        "wheelchair_not_ordered": "Wheelchair not ordered yet!"
+        "wheelchair_not_ordered": "Wheelchair not ordered yet!",
+        "access_denied": "Access denied; ({error})",
+        "unknown_error": "Unknown error; ({error})",
+        "hit_404_error": "Oops! This page does not exist!",
+        "go_to_homepage": "Go to homepage."
     },
     "nl": {
         "app_title": "TNS Web applicatie",
@@ -79,6 +83,10 @@
         "serial_number": "Serienummer",
         "employee": "Medewerker",
         "order_date": "Aankoopdatum",
-        "wheelchair_not_ordered": "Rolstoel is nog niet besteld!"
+        "wheelchair_not_ordered": "Rolstoel is nog niet besteld!",
+        "access_denied": "Toegang geweigerd; ({error})",
+        "unknown_error": "Onbekende error; ({error})",
+        "hit_404_error": "Oops! Deze pagina bestaat niet!",
+        "go_to_homepage": "Ga naar de homepagina."
     }
 }
