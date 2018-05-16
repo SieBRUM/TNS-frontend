@@ -19,6 +19,7 @@
 <link rel="lazy-import" href="pages/login-page.html">
 <link rel="import" href="pages/authorize-page.html">
 <link rel="import" href="pages/users-page.html">
+<link rel="import" href="pages/wheelchair-config-page.html">
 <link rel="import" href="pages/customers-page.html">
 
 <link rel="import" href="elements/global-toast-element.html">
@@ -90,6 +91,7 @@
             <a name="login" href="#[[rootPath]]login">Login</a>
           </template>
           <template is="dom-if" if="[[loggedIn]]">
+            <a name="wheelchair-config" href="#[[rootPath]]wheelchair-config">{{localize('wheelchair_configurator')}}</a>
             <template is="dom-if" if="[[hasPermission(userdata)]]">
               <a name="users" href="#[[rootPath]]users">{{localize('users')}}</a>
             </template>
@@ -116,10 +118,10 @@
           <login-page name="login"></login-page>
           <authorize-page name="authorize"></authorize-page>
           <users-page name="users"></users-page>
+          <wheelchair-config-page name="wheelchair-config"></wheelchair-config-page>
           <wheelchairs-page name="wheelchairs"></wheelchairs-page>
           <customers-page name="customers"></customers-page>
-          <tns-404-page name="tns-404">
-          </tns-404-page>
+          <tns-404-page name="tns-404"></tns-404-page>
         </iron-pages>
       </app-header-layout>
     </app-drawer-layout>
