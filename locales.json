@@ -1,6 +1,6 @@
 {
     "en": {
-        "app_title":"TNS Web application",
+        "app_title": "TNS Web application",
         "hello": "Hello there",
         "username": "Username",
         "password": "Password",
@@ -21,7 +21,17 @@
         "cancel": "Cancel",
         "new_password": "New password",
         "last_login": "Last login",
-        "wheelchair_configurator": "Wheelchair configurator"
+        "wheelchair_configurator": "Wheelchair configurator",
+        "preview": "Preview",
+        "backrest_height": "E - Height of backrest",
+        "balance_point": "H - Balance point",
+        "footplate_width": "B - Width of footplate",
+        "frame_length": "D - Frame length",
+        "lowerleg_width": "I - Lowerleg frame width",
+        "seat_depth": "C - Depth of seat",
+        "seat_width": "A - Width of seat",
+        "seat_height_back": "G - Height back of seat",
+        "seat_height_front": "F - Height front of seat"
     },
     "nl": {
         "app_title": "TNS Web applicatie",
@@ -33,7 +43,7 @@
         "user_authorized": "Gebruiker geauthoriseerd!",
         "user_not_authorized": "Gebruiker niet geauthoriseerd!",
         "invalid_login_details": "Ongeldige gebruikersnaam en/of wachtwoord",
-        "authorising_user":"Gebruiker autoriseren",
+        "authorising_user": "Gebruiker autoriseren",
         "authorising_user_subtext": "Duurt dit langer dan 5 seconden? Herlaad dan de pagina.",
         "access_level": "Toegangsniveau",
         "enabled": "Geactiveerd",
@@ -41,10 +51,20 @@
         "users": "Gebruikers",
         "yes": "Ja",
         "no": "Nee",
-        "save":"Opslaan",
+        "save": "Opslaan",
         "cancel": "Annuleer",
         "new_password": "Nieuw wachtwoord",
         "last_login": "Laatste login",
-        "wheelchair_configurator": "Rolstoel configurator"
+        "wheelchair_configurator": "Rolstoel configurator",
+        "preview": "Voorvertoning",
+        "backrest_height": "E - Rugleuning hoogte",
+        "balance_point": " H - Balans punt",
+        "footplate_width": "B - Voetenplaat breedte",
+        "frame_length": "D - Frame lengte",
+        "lowerleg_width": "I - Onderbeen frame breedte",
+        "seat_depth": "C - Diepte zitgedeelte",
+        "seat_width": "A - Breedte zitgedeelte",
+        "seat_height_back": "G - Hoogte rugleuning",
+        "seat_height_front": "F - Hoogte voorkant zitgedeelte"
     }
 }
