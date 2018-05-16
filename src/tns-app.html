@@ -19,6 +19,7 @@
 <link rel="lazy-import" href="pages/login-page.html">
 <link rel="import" href="pages/authorize-page.html">
 <link rel="import" href="pages/users-page.html">
+<link rel="import" href="pages/customers-page.html">
 
 <link rel="import" href="elements/global-toast-element.html">
 <link rel="lazy-import" href="pages/tns-404-page.html">
@@ -93,6 +94,7 @@
               <a name="users" href="#[[rootPath]]users">{{localize('users')}}</a>
             </template>
             <a name="wheelchairs" href="#[[rootPath]]wheelchairs">{{localize('wheelchairs')}}</a>
+            <a name="customers" href="#[[rootPath]]customers">{{localize('customers')}}</a>
           </template>
         </iron-selector>
       </app-drawer>
@@ -115,6 +117,7 @@
           <authorize-page name="authorize"></authorize-page>
           <users-page name="users"></users-page>
           <wheelchairs-page name="wheelchairs"></wheelchairs-page>
+          <customers-page name="customers"></customers-page>
           <tns-404-page name="tns-404">
           </tns-404-page>
         </iron-pages>
