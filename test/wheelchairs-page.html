@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
+
+  <title>wheelchairs-page</title>
+
+  <script src="../bower_components/webcomponentsjs/webcomponents-lite.js"></script>
+  <script src="../bower_components/web-component-tester/browser.js"></script>
+
+  <!-- Import the element to test -->
+  <link rel="import" href="../src/pages/wheelchairs-page.html">
+</head>
+
+<body>
+  <test-fixture id="BasicView">
+    <template>
+      <wheelchairs-page></wheelchairs-page>
+    </template>
+  </test-fixture>
+
+  <script>
+    suite('wheelchairs-page tests', function () {
+      test('Sanity test', function () {
+        expect(1).to.not.equal(2);
+        expect(1).to.equal(1);
+        expect(true).to.be.true;
+      });
+
+      test('ficture should be A11y approved', function () {
+        a11ySuite('BasicView');
+      });
+
+      test('Should correct time', function () {
+        var element = fixture('BasicView');
+        element.language = 'en';
+        expect(element.toHumanReadableTime("This is a time")).to.equal(' his is a time');
+      });
+
+      test('Should return correct user params', function () {
+        var element = fixture('BasicView');
+        expect(element.userParams(null)).to.equal(null);
+        expect(element.userParams("")).to.equal(null);
+        expect(element.userParams("{}")).to.equal(null);
+        expect(element.userParams('{"username": "Test-user","accesstoken":"testing-token"}'))
+          .to.deep.equal({
+            Username: "Test-user",
+            Token: "testing-token"
+          });
+      });
+
+      test("Should set wheelchairs on response", function () {
+        var element = fixture('BasicView');
+        element.wheelchairs = [];
+        element.handleResponse(null, {
+          response: [{
+            Id: 1
+          }]
+        });
+        expect(element.wheelchairs).to.deep.equal([{
+          Id: 1
+        }]);
+      });
+    });
+  </script>
+</body>
+
+</html>

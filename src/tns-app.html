@@ -20,9 +20,10 @@
 <link rel="import" href="pages/authorize-page.html">
 <link rel="import" href="pages/users-page.html">
 <link rel="import" href="pages/wheelchair-config-page.html">
+<link rel="import" href="pages/customers-page.html">
 
 <link rel="import" href="elements/global-toast-element.html">
-<link rel="lazy-import" href="my-view404.html">
+<link rel="lazy-import" href="pages/tns-404-page.html">
 
 <dom-module id="tns-app">
   <template>
@@ -90,9 +91,13 @@
             <a name="login" href="#[[rootPath]]login">Login</a>
           </template>
           <template is="dom-if" if="[[loggedIn]]">
-            <a name="users" href="#[[rootPath]]users">{{localize('users')}}</a>
             <a name="wheelchair-config" href="#[[rootPath]]wheelchair-config">{{localize('wheelchair_configurator')}}</a>
+            <template is="dom-if" if="[[hasPermission(userdata)]]">
+              <a name="users" href="#[[rootPath]]users">{{localize('users')}}</a>
             </template>
+            <a name="wheelchairs" href="#[[rootPath]]wheelchairs">{{localize('wheelchairs')}}</a>
+            <a name="customers" href="#[[rootPath]]customers">{{localize('customers')}}</a>
+          </template>
         </iron-selector>
       </app-drawer>
 
@@ -109,12 +114,14 @@
           </app-toolbar>
         </app-header>
 
-        <iron-pages selected="[[page]]" attr-for-selected="name" fallback-selection="view404" role="main">
+        <iron-pages selected="[[page]]" attr-for-selected="name" fallback-selection="tns-404" role="main">
           <login-page name="login"></login-page>
           <authorize-page name="authorize"></authorize-page>
           <users-page name="users"></users-page>
           <wheelchair-config-page name="wheelchair-config"></wheelchair-config-page>
-          <my-view404 name="view404"></my-view404>
+          <wheelchairs-page name="wheelchairs"></wheelchairs-page>
+          <customers-page name="customers"></customers-page>
+          <tns-404-page name="tns-404"></tns-404-page>
         </iron-pages>
       </app-header-layout>
     </app-drawer-layout>
@@ -126,7 +133,9 @@
     Polymer.setPassiveTouchGestures(true);
 
     class TnsApp extends Polymer.mixinBehaviors([Polymer.AppLocalizeBehavior], Polymer.Element) {
-      static get is() { return 'tns-app'; }
+      static get is() {
+        return 'tns-app';
+      }
 
       static get properties() {
         return {
@@ -140,7 +149,7 @@
           rootPath: String,
           userdata: {
             type: String,
-            value: {}
+            value: "{}"
           },
           loggedIn: {
             type: Boolean,
@@ -150,7 +159,7 @@
           hasBeenAuthorised: {
             type: Boolean,
             value: false,
-            observer: '_onAuthorisedChanged'
+            observer: '_onLoginChanged'
           },
           language: {
             value: 'nl'
@@ -168,9 +177,9 @@
         super.connectedCallback();
         this.loadResources(this.resolveUrl('../locales.json'));
       }
-      
+
       toPicture(language) {
-        if(language == 'en') {
+        if (language == 'en') {
           return "../../images/dutch.png";
         } else {
           return "../../images/english.png";
@@ -179,13 +188,14 @@
       _routePageChanged(page) {
         // If no page was found in the route data, page will be an empty string.
         // Default to 'view1' in that case.
-        if(!this.hasBeenAuthorised) {
+        if (!this.hasBeenAuthorised) {
           this.page = 'authorize';
           return;
         }
 
-        if(!this.loggedIn) {
+        if (!this.loggedIn) {
           this.page = 'login';
+          return;
         }
 
         this.page = page || 'login';
@@ -193,6 +203,15 @@
         // Close a non-persistent drawer when the page & route are changed.
         if (!this.$.drawer.persistent) {
           this.$.drawer.close();
+        }
+      }
+
+      hasPermission(userdata) {
+        var user = JSON.parse(userdata);
+        if (user.accesslevel == "Admin") {
+          return true;
+        } else {
+          return false;
         }
       }
 
@@ -207,30 +226,16 @@
       }
 
       _showPage404() {
-        this.page = 'view404';
+        this.page = 'tns-404';
       }
 
       logout() {
-        this.userdata = {};
+        this.userdata = "{}";
         this.loggedIn = false;
       }
 
-      _onAuthorisedChanged() {
-        if(this.hasBeenAuthorised && !this.loggedIn) {
-          if(this.page != 'login') {
-            this.page = 'login';
-          }
-        }
-
-        if(this.hasBeenAuthorised && this.loggedIn) {
-          window.history.replaceState({}, null, '#/users');
-          window.dispatchEvent(new CustomEvent('location-changed'));    
-          this.page = "users";          
-        }
-      }
-
       _onLanguageChanged() {
-        if(this.language == 'en') {
+        if (this.language == 'en') {
           this.language = 'nl';
         } else {
           this.language = 'en'
@@ -238,14 +243,18 @@
       }
 
       _onLoginChanged() {
-        if(!this.loggedIn) {
+        if (!this.loggedIn && this.hasBeenAuthorised) {
           window.history.replaceState({}, null, '#/login');
-          window.dispatchEvent(new CustomEvent('location-changed'));  
+          window.dispatchEvent(new CustomEvent('location-changed'));
           this.page = 'login';
-        } else {
-          window.history.replaceState({}, null, '#/users');
-          window.dispatchEvent(new CustomEvent('location-changed'));  
-          this.page = 'users';
+        } else if (this.loggedIn && this.hasBeenAuthorised) {
+          if (this.routeData.page && this.routeData.page != "login") {
+            this.page = this.routeData.page;
+          } else {
+            this.page = "wheelchairs";
+            window.history.replaceState({}, null, '#/wheelchairs');
+            window.dispatchEvent(new CustomEvent('location-changed'));
+          }
         }
       }
     }

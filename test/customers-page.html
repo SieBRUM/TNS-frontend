@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
+
+  <title>customers-page</title>
+
+  <script src="../bower_components/webcomponentsjs/webcomponents-lite.js"></script>
+  <script src="../bower_components/web-component-tester/browser.js"></script>
+
+  <!-- Import the element to test -->
+  <link rel="import" href="../src/pages/customers-page.html">
+</head>
+
+<body>
+  <test-fixture id="BasicView">
+    <template>
+      <customers-page></customers-page>
+    </template>
+  </test-fixture>
+
+  <script>
+    suite('customers-page tests', function () {
+      test('Sanity test', function () {
+        expect(1).to.not.equal(2);
+        expect(1).to.equal(1);
+        expect(true).to.be.true;
+      });
+
+      test('ficture should be A11y approved', function () {
+        a11ySuite('BasicView');
+      });
+
+      test('fixture creation should be succesful', function () {
+        var element = fixture('BasicView');
+        expect(element.newUser, {});
+        expect(element.is, 'customers-page');
+      });
+
+      test('should set new customer', function () {
+        var element = fixture('BasicView');
+        expect(element.newCustomer).to.deep.equal({});
+        var spy = sinon.spy(element, 'onAddCustomer');
+        element.onAddCustomer();
+        expect(element.newCustomer).to.deep.equal({
+          Id: 0,
+          Name: "",
+          Address: "",
+          City: "",
+          Email: "",
+          PhoneNumber: "",
+          Zipcode: ""
+        });
+        expect(spy).to.have.been.called;
+      });
+
+      test('Should return null because user data does not exist', function () {
+        var element = fixture('BasicView');
+        expect(element.userParams({})).to.equal(null);
+      });
+
+      test('Should return correct userdata because user data does not exist', function () {
+        var element = fixture('BasicView');
+        expect(element.userParams(JSON.stringify({
+          username: "Test-user",
+          accesstoken: "abc-def-ghi-jkl-1337"
+        }))).to.deep.equal({
+          Username: "Test-user",
+          Token: "abc-def-ghi-jkl-1337"
+        });
+      });
+      test('Should handle response correcly', function () {
+        var element = fixture('BasicView');
+        element.handleResponse(null, {
+          response: [{
+            username: "Hey"
+          }]
+        });
+
+        expect(element.customers).to.deep.equal([{
+          username: "Hey"
+        }]);
+      });
+    });
+  </script>
+</body>
+
+</html>

@@ -1,5 +1,4 @@
 <link rel="import" href="../../bower_components/polymer/polymer-element.html">
-<link rel="import" href="../../bower_components/iron-form/iron-form.html">
 <link rel="import" href="../../bower_components/paper-input/paper-input.html">
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
@@ -13,6 +12,7 @@
 <link rel="import" href="../../bower_components/paper-datatable-api/paper-datatable-api-column.html">
 <link rel="import" href="../../bower_components/paper-spinner/paper-spinner-lite.html">
 <link rel="import" href="../../bower_components/iron-icons/editor-icons.html">
+<link rel="import" href="../../bower_components/iron-icons/social-icons.html">
 <link rel="import" href="../../bower_components/vaadin-dialog/vaadin-dialog.html">
 <link rel="import" href="../../bower_components/paper-checkbox/paper-checkbox.html">
 
@@ -28,8 +28,16 @@
         text-align: center;
       }
 
-      .dialog {
-        width:80vh;
+      @media only screen and (min-width: 1224px) {
+        .dialog {
+          width: 80vh;
+        }
+      }
+
+      @media only screen and (min-width: 1824px) {
+        .dialog {
+          width: 80vh;
+        }
       }
 
       .pull-right {
@@ -38,11 +46,11 @@
 
       paper-button.confirm {
         background-color: #28A745;
-        color:white;
+        color: white;
       }
 
       paper-button.dismiss {
-        color:#ff0033;
+        color: #ff0033;
       }
     </style>
     <brum-global-variable key="successtoast" value="{{succesToast}}"></brum-global-variable>
@@ -53,73 +61,82 @@
 
     <app-localstorage-document key="userdata" data="{{userdata}}"></app-localstorage-document>
 
-    <iron-ajax id="getallusers" url="/backend/api/users" handle-as="json" on-response="handleResponse" on-error="handleError"
-      loading="{{isLoading}}" headers="[[userParams(userdata)]]" method="POST" with-credentials content-type="application/json"></iron-ajax>
+    <iron-ajax id="getallusers" url="/backend/api/users" handle-as="json" on-response="handleResponse" loading="{{isLoading}}"
+      headers="[[userParams(userdata)]]" method="GET" with-credentials content-type="application/json" on-error="handleError"></iron-ajax>
+    <iron-ajax id="addUser" url="/backend/api/users" handle-as="json" on-response="onAddResponse" on-error="onAddError" loading="{{isLoading}}"
+      headers="[[userParams(userdata)]]" method="POST" with-credentials content-type="application/json"></iron-ajax>
 
-    <div class="card">
-      <h1>{{localize('users')}}</h1>
+    <div class="card card-table">
+      <h1>
+        {{localize('users')}}
+        <paper-icon-button icon="social:person-add" class="pull-right" on-tap="onAddUser" title$="{{localize('add_user_title')}}"></paper-icon-button>
+      </h1>
       <template is="dom-if" if="[[isLoading]]">
         <div class="center">
-            <paper-spinner-lite active></paper-spinner-lite>
+          <paper-spinner-lite active></paper-spinner-lite>
         </div>
       </template>
-      
-      <template is="dom-if" if="[[hasChanged]]" restamp="true">
-          <paper-datatable-api data="[[users]]">
-              <paper-datatable-api-column header="{{localize('username')}}" property="Username" >
-                <template>
-                  <span>{{value}}</span>
-                </template>
-              </paper-datatable-api-column>
-              <paper-datatable-api-column header="{{localize('access_level')}}" property="AccessLevel">
-                <template>
-                  <span>{{value}}</span>
-                </template>
-              </paper-datatable-api-column>
-              <paper-datatable-api-column header="{{localize('enabled')}}" property="IsActive">
-                  <template>
-                    <span>{{isActive(value)}}</span>
-                  </template>
-                </paper-datatable-api-column>
-                <paper-datatable-api-column header="{{localize('last_login')}}" property="LastLogin">
-                    <template>
-                      <span>{{value}}</span>
-                    </template>
-                  </paper-datatable-api-column>
-              <paper-datatable-api-column header="{{localize('edit')}}" property="Id">
-                  <template>
-                    <paper-icon-button icon="editor:mode-edit" on-tap="onEdit" user-id$="[[value]]"></paper-icon-button>
-                  </template>
-              </paper-datatable-api-column>
-            </paper-datatable-api>
 
-        <vaadin-dialog id="editUserDialog" no-close-on-outside-click>
+      <template is="dom-if" if="[[hasChanged]]" restamp="true">
+        <paper-datatable-api data="[[users]]">
+          <paper-datatable-api-column header="{{localize('username')}}" property="Username">
+            <template>
+              <span>{{value}}</span>
+            </template>
+          </paper-datatable-api-column>
+          <paper-datatable-api-column header="{{localize('access_level')}}" property="AccessLevel">
+            <template>
+              <span>{{value}}</span>
+            </template>
+          </paper-datatable-api-column>
+          <paper-datatable-api-column header="{{localize('enabled')}}" property="IsActive">
+            <template>
+              <span>{{isActive(value)}}</span>
+            </template>
+          </paper-datatable-api-column>
+          <paper-datatable-api-column header="{{localize('last_login')}}" property="LastLogin">
+            <template>
+              <span>{{toHumanReadableTime(value)}}</span>
+            </template>
+          </paper-datatable-api-column>
+          <paper-datatable-api-column header="{{localize('edit')}}" property="Id">
+            <template>
+              <paper-icon-button icon="editor:mode-edit" on-tap="onEdit" user-id$="[[value]]" title$="{{localize('edit')}}"></paper-icon-button>
+            </template>
+          </paper-datatable-api-column>
+        </paper-datatable-api>
+        <!-- Start Add user dialog -->
+        <vaadin-dialog id="addUserDialog" no-close-on-outside-click>
           <template>
             <div class="dialog">
-                <paper-input label="{{localize('username')}}" disabled value="{{selectedUser.Username}}"></paper-input>
-                <paper-input label="{{localize('new_password')}}" value="{{selectedUser.Password}}" type="password"></paper-input>
-                <paper-dropdown-menu label="{{localize('access_level')}}" value="{{selectedUser.AccessLevel}}">
-                    <paper-listbox slot="dropdown-content">
-                      <paper-item value="Default">Default</paper-item>
-                      <paper-item value="Admin">Admin</paper-item>
-                    </paper-listbox>
-                </paper-dropdown-menu>
-                <br>                
-                <paper-checkbox checked="{{selectedUser.IsActive}}">{{localize('enabled')}}</paper-checkbox>
-                <br>
-                <br>
-                <paper-button on-tap="onSave" class="confirm">{{localize('save')}}</paper-button>
-                <paper-button on-tap="onCancel" class="pull-right dismiss">{{localize('cancel')}}</paper-button>
+              <h1>{{dialogTitleText}}</h1>
+              <paper-input label="{{localize('username')}}" value="{{newUser.Username}}" char-counter maxlength="50" disabled="[[dialogUsernameDisabled]]"></paper-input>
+              <paper-input label="{{localize('password')}}" value="{{newUser.Password}}" type="password" char-counter maxlength="50" placeholder$="{{dialogPasswordPlaceholder}}"></paper-input>
+              <paper-dropdown-menu label="{{localize('access_level')}}" value="{{newUser.AccessLevel}}">
+                <paper-listbox slot="dropdown-content">
+                  <paper-item value="Default">Default</paper-item>
+                  <paper-item value="Admin">Admin</paper-item>
+                </paper-listbox>
+              </paper-dropdown-menu>
+              <br>
+              <paper-checkbox checked="{{newUser.IsActive}}">{{localize('enabled')}}</paper-checkbox>
+              <br>
+              <br>
+              <paper-button class="confirm" on-tap="onSaveAdd">{{dialogButtonText}}</paper-button>
+              <paper-button class="pull-right dismiss" on-tap="onCancelAdd">{{localize('cancel')}}</paper-button>
             </div>
           </template>
         </vaadin-dialog>
+        <!-- End Add user dialog -->
       </template>
     </div>
   </template>
 
   <script>
     class UsersPage extends Polymer.mixinBehaviors([Polymer.AppLocalizeBehavior], Polymer.Element) {
-      static get is() { return 'users-page'; }
+      static get is() {
+        return 'users-page';
+      }
       static get properties() {
         return {
           isLoading: {
@@ -142,9 +159,22 @@
             type: String,
             observer: '_onPageChanged'
           },
-          selectedUser: {
-            value: null,
-            type: Object
+          newUser: {
+            value: {},
+            type: Object,
+            observer: '_onNewUserChanged'
+          },
+          dialogTitleText: {
+            value: "NULL"
+          },
+          dialogButtonText: {
+            value: "NULL"
+          },
+          dialogPasswordPlaceholder: {
+            value: ""
+          },
+          dialogUsernameDisabled: {
+            value: true
           }
         };
       }
@@ -155,8 +185,8 @@
       }
 
       userParams(userdata) {
-        if(Object.keys(userdata).length == 0) {
-          return;
+        if (Object.keys(userdata).length == 0) {
+          return null;
         }
 
         var user = JSON.parse(userdata);
@@ -172,12 +202,8 @@
         this.users = request.response;
       }
 
-      handleError(data, request) {
-        
-      }
-
       isActive(value) {
-        if(value) {
+        if (value) {
           return this.localize('yes');
         } else {
           return this.localize('no');
@@ -187,22 +213,34 @@
       onEdit(event) {
         var selectedId = event.target.getAttribute('user-id');
         // Deepclone...
-        this.selectedUser = JSON.parse(JSON.stringify(this.users.find(x => x.Id == selectedId)));
-        console.log(this.selectedUser);
-        this.$$('#editUserDialog').opened = true;
+        this.newUser = JSON.parse(JSON.stringify(this.users.find(x => x.Id == selectedId)));
+        try {
+          this.$$('#addUserDialog').opened = true;
+        } catch (err) {
+          this.errorToast = "COULD NOT OPEN DIALOG";
+        }
       }
 
-      onSave() {
-        this.$$('#editUserDialog').opened = false;
-        console.log(this.selectedUser);
+      onSaveAdd() {
+        if (!this.newUser.Username) {
+          this.errorToast = this.localize('username_empty_error');
+          return;
+        }
+        if (!this.newUser.Password && (this.newUser.Id == 0 || !this.newUser.Id)) {
+          this.errorToast = this.localize('password_empty_error');
+          return;
+        }
+        this.$$('#addUser').body = JSON.stringify(this.newUser);
+        this.$$('#addUser').generateRequest();
+        this.isLoading = true;
       }
 
-      onCancel() {
-        this.$$('#editUserDialog').opened = false;
+      onCancelAdd() {
+        this.$$('#addUserDialog').opened = false;
       }
 
       accesslevelToNumber(accessLevel) {
-        if(accessLevel == "Admin") {
+        if (accessLevel == "Admin") {
           return 1;
         }
         return 0;
@@ -213,12 +251,93 @@
         this.hasChanged = false;
         var that = this;
         this.isLoading = true;
-        setTimeout(function(){ that.isLoading=false; that.hasChanged = true; }, 300);
+        setTimeout(function () {
+          that.isLoading = false;
+          that.hasChanged = true;
+        }, 300);
       }
 
       _onPageChanged() {
-        if(this.page == "users") {
-          this.$.getallusers.generateRequest(); 
+        if (this.page == "users") {
+          this.$.getallusers.generateRequest();
+        }
+      }
+
+      onAddUser() {
+        this.newUser = {
+          Id: 0,
+          AccessLevel: "Default",
+          IsActive: true
+        };
+
+        // have to use try catch because currently, unit testing does not support this behavior
+        try {
+          this.$$('#addUserDialog').opened = true;
+        } catch (err) {
+          this.errorToast = "COULD NOT OPEN DIALOG";
+        }
+      }
+
+      toHumanReadableTime(time) {
+        if (!time) {
+          return this.localize('user_never_logged_in')
+        }
+        return time.replace("T", " ");
+      }
+
+      onAddResponse(data, request) {
+        this.users = request.response;
+        this.$$('#addUserDialog').opened = false;
+        this.succesToast = this.localize('save_user_success', 'name', this.newUser.Username);
+      }
+
+      onAddError(response, data) {
+        if (data.request.status == 403) {
+          this.$$('#addUserDialog').opened = false;
+          this.errorToast = this.localize('access_denied', 'error', data.request.response);
+          this.userdata = "{}";
+          this.loggedIn = false;
+        } else if (data.request.status == 401) {
+          this.$$('#addUserDialog').opened = false;
+          this.errorToast = this.localize('access_denied', 'error', data.request.response);
+          this.page = "wheelchairs";
+          window.history.replaceState({}, null, '#/wheelchairs');
+          window.dispatchEvent(new CustomEvent('location-changed'));
+        } else {
+          if (data.request.status == 400) {
+            this.errorToast = this.localize('save_user_error', 'error', data.request.response.Message);
+          } else {
+            this.errorToast = this.localize('save_user_error', 'error', data.request.response);
+          }
+        }
+      }
+
+      handleError(response, data) {
+        if (data.request.status == 403) {
+          this.errorToast = this.localize('access_denied', 'error', data.request.response);
+          this.userdata = "{}";
+          this.loggedIn = false;
+        } else if (data.request.status == 401) {
+          this.errorToast = this.localize('access_denied', 'error', data.request.response);
+          this.page = "wheelchairs";
+          window.history.replaceState({}, null, '#/wheelchairs');
+          window.dispatchEvent(new CustomEvent('location-changed'));
+        } else {
+          this.errorToast = this.localize('unknown_error', 'error', data.request.response);
+        }
+      }
+
+      _onNewUserChanged(newValue) {
+        if (newValue.Id && newValue.Id != 0) {
+          this.dialogTitleText = this.localize("edit_user_title");
+          this.dialogButtonText = this.localize("edit");
+          this.dialogPasswordPlaceholder = this.localize("password_unchanged");
+          this.dialogUsernameDisabled = true;
+        } else {
+          this.dialogTitleText = this.localize("add_user_title");
+          this.dialogButtonText = this.localize("add");
+          this.dialogPasswordPlaceholder = "";
+          this.dialogUsernameDisabled = false;
         }
       }
     }

@@ -1,0 +1,216 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="../../bower_components/brum-global-variable/brum-global-variable.html">
+<link rel="import" href="../../bower_components/paper-spinner/paper-spinner-lite.html">
+<link rel="import" href="../../bower_components/app-storage/app-localstorage/app-localstorage-document.html">
+<link rel="import" href="../shared-styles.html">
+<link rel="import" href="../../bower_components/app-localize-behavior/app-localize-behavior.html">
+<link rel="import" href="../../bower_components/paper-datatable-api/paper-datatable-api.html">
+<link rel="import" href="../../bower_components/paper-datatable-api/paper-datatable-api-column.html">
+<link rel="import" href="../../bower_components/paper-spinner/paper-spinner-lite.html">
+<link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
+
+<dom-module id="wheelchairs-page">
+  <template>
+    <style include="shared-styles">
+      :host {
+        display: block;
+
+        padding: 10px;
+      }
+
+      .center {
+        text-align: center;
+      }
+
+      @media only screen and (min-width: 1224px) {
+        .dialog {
+          width: 80vh;
+        }
+      }
+
+      @media only screen and (min-width: 1824px) {
+        .dialog {
+          width: 80vh;
+        }
+      }
+
+      .pull-right {
+        float: right;
+      }
+
+      paper-button.confirm {
+        background-color: #28A745;
+        color: white;
+      }
+
+      paper-button.dismiss {
+        color: #ff0033;
+      }
+    </style>
+    <brum-global-variable key="successtoast" value="{{succesToast}}"></brum-global-variable>
+    <brum-global-variable key="errortoast" value="{{errorToast}}"></brum-global-variable>
+    <brum-global-variable key="loggedin" value="{{loggedIn}}"></brum-global-variable>
+    <brum-global-variable key="language" value="{{language}}"></brum-global-variable>
+    <brum-global-variable key="page" value="{{page}}"></brum-global-variable>
+
+    <app-localstorage-document key="userdata" data="{{userdata}}"></app-localstorage-document>
+
+    <iron-ajax id="getallwheelchairs" url="/backend/api/wheelchair" handle-as="json" on-response="handleResponse" loading="{{isLoading}}"
+      headers="[[userParams(userdata)]]" method="GET" with-credentials content-type="application/json" on-error="handleError"></iron-ajax>
+
+    <div class="card card-table">
+      <h1>
+        {{localize('wheelchairs')}}
+        <paper-icon-button icon="icons:accessible" class="pull-right" title$="{{localize('add_wheelchair_title')}}"></paper-icon-button>
+      </h1>
+      <template is="dom-if" if="[[isLoading]]">
+        <div class="center">
+          <paper-spinner-lite active></paper-spinner-lite>
+        </div>
+      </template>
+
+      <template is="dom-if" if="[[hasChanged]]" restamp="true">
+        <paper-datatable-api data="[[wheelchairs]]">
+          <paper-datatable-api-column header="{{localize('customer')}}" property="Customer">
+            <template>
+              <span>{{value.Name}}</span>
+            </template>
+          </paper-datatable-api-column>
+          <paper-datatable-api-column header="{{localize('serial_number')}}" property="SerialNumber">
+            <template>
+              <span>{{value}}</span>
+            </template>
+          </paper-datatable-api-column>
+          <paper-datatable-api-column header="{{localize('employee')}}" property="User">
+            <template>
+              <span>{{value.Username}}</span>
+            </template>
+          </paper-datatable-api-column>
+          <paper-datatable-api-column header="{{localize('order_date')}}" property="OrderDate">
+            <template>
+              <span>{{toHumanReadableTime(value)}}</span>
+            </template>
+          </paper-datatable-api-column>
+          <paper-datatable-api-column header="{{localize('edit')}}" property="Id">
+            <template>
+              <paper-icon-button icon="editor:mode-edit" user-id$="[[value]]" title$="{{localize('edit')}}"></paper-icon-button>
+            </template>
+          </paper-datatable-api-column>
+        </paper-datatable-api>
+      </template>
+    </div>
+  </template>
+
+  <script>
+    class WheelchairsPage extends Polymer.mixinBehaviors([Polymer.AppLocalizeBehavior], Polymer.Element) {
+      static get is() {
+        return 'wheelchairs-page';
+      }
+      static get properties() {
+        return {
+          isLoading: {
+            type: Boolean,
+            value: true
+          },
+          succesToast: String,
+          errorToast: String,
+          userdata: {
+            type: String,
+            observer: '_onUserChanged'
+          },
+          wheelchairs: Array,
+          hasChanged: {
+            type: Boolean,
+            value: true
+          },
+          language: {
+            type: String,
+            observer: '_hasLanguageChanged'
+          },
+          page: {
+            type: String,
+            observer: '_onPageChanged'
+          }
+        };
+      }
+
+      connectedCallback() {
+        super.connectedCallback();
+        this.loadResources(this.resolveUrl('../../locales.json'));
+      }
+
+      toHumanReadableTime(time) {
+        if (!time) {
+          return this.localize('wheelchair_not_ordered')
+        }
+        return time.replace("T", " ");
+      }
+
+
+      userParams(userdata) {
+        if (userdata == null || userdata == "") {
+          return null;
+        }
+        var user = JSON.parse(userdata);
+
+        if (Object.keys(user).length == 0) {
+          return null;
+        }
+
+        var requestBody = {
+          Username: user.username,
+          Token: user.accesstoken
+        };
+
+        return requestBody;
+      }
+
+      handleResponse(data, request) {
+        this.wheelchairs = request.response;
+      }
+
+      handleError(response, data) {
+        if (data.request.status == 403) {
+          this.errorToast = this.localize('access_denied', 'error', data.request.response);
+          this.userdata = "{}";
+          this.loggedIn = false;
+        } else {
+          this.errorToast = this.localize('unknown_error', 'error', data.request.response);
+        }
+      }
+
+      _hasLanguageChanged() {
+        // Doing this so table gets rebuild.. Kinda hacky but hey, it works!
+        this.hasChanged = false;
+        var that = this;
+        this.isLoading = true;
+        setTimeout(function () {
+          that.isLoading = false;
+          that.hasChanged = true;
+        }, 300);
+      }
+
+      _onPageChanged() {
+        if (this.page == "wheelchairs") {
+          if (this.userdata != "" && this.userdata != undefined) {
+            this.$.getallwheelchairs.generateRequest();
+          }
+        }
+      }
+
+      _onUserChanged(newValue, oldValue) {
+        if (oldValue == undefined || oldValue == "") {
+          if (newValue != undefined && newValue != "" && newValue != {}) {
+            this.$.getallwheelchairs.generateRequest();
+          }
+        }
+      }
+    }
+
+    window.customElements.define(WheelchairsPage.is, WheelchairsPage);
+  </script>
+</dom-module>
