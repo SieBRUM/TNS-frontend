@@ -108,38 +108,13 @@
             </template>
           </paper-datatable-api-column>
         </paper-datatable-api>
-        <!-- Start Edit user dialog -->
-        <vaadin-dialog id="editUserDialog" no-close-on-outside-click>
-          <template>
-            <div class="dialog">
-              <h1>{{localize('edit_user_title')}}</h1>
-              <paper-input label="{{localize('username')}}" disabled value="{{selectedUser.Username}}" char-counter maxlength="50"></paper-input>
-              <paper-input label="{{localize('new_password')}}" value="{{selectedUser.Password}}" type="password" char-counter maxlength="50"
-                placeholder$="{{localize('password_unchanged')}}"></paper-input>
-              <paper-dropdown-menu label="{{localize('access_level')}}" value="{{selectedUser.AccessLevel}}" required auto-validate>
-                <paper-listbox slot="dropdown-content">
-                  <paper-item value="Default">Default</paper-item>
-                  <paper-item value="Admin">Admin</paper-item>
-                </paper-listbox>
-              </paper-dropdown-menu>
-              <br>
-              <paper-checkbox checked="{{selectedUser.IsActive}}">{{localize('enabled')}}</paper-checkbox>
-              <br>
-              <br>
-              <paper-button on-tap="onSaveEdit" class="confirm">{{localize('save')}}</paper-button>
-              <paper-button on-tap="onCancelEdit" class="pull-right dismiss">{{localize('cancel')}}</paper-button>
-            </div>
-          </template>
-        </vaadin-dialog>
-        <!-- End Edit user dialog -->
-
         <!-- Start Add user dialog -->
         <vaadin-dialog id="addUserDialog" no-close-on-outside-click>
           <template>
             <div class="dialog">
-              <h1>{{localize('add_user_title')}}</h1>
-              <paper-input label="{{localize('username')}}" value="{{newUser.Username}}" char-counter maxlength="50"></paper-input>
-              <paper-input label="{{localize('password')}}" value="{{newUser.Password}}" type="password" char-counter maxlength="50"></paper-input>
+              <h1>{{dialogTitleText}}</h1>
+              <paper-input label="{{localize('username')}}" value="{{newUser.Username}}" char-counter maxlength="50" disabled="[[dialogUsernameDisabled]]"></paper-input>
+              <paper-input label="{{localize('password')}}" value="{{newUser.Password}}" type="password" char-counter maxlength="50" placeholder$="{{dialogPasswordPlaceholder}}"></paper-input>
               <paper-dropdown-menu label="{{localize('access_level')}}" value="{{newUser.AccessLevel}}">
                 <paper-listbox slot="dropdown-content">
                   <paper-item value="Default">Default</paper-item>
@@ -150,7 +125,7 @@
               <paper-checkbox checked="{{newUser.IsActive}}">{{localize('enabled')}}</paper-checkbox>
               <br>
               <br>
-              <paper-button class="confirm" on-tap="onSaveAdd">{{localize('add')}}</paper-button>
+              <paper-button class="confirm" on-tap="onSaveAdd">{{dialogButtonText}}</paper-button>
               <paper-button class="pull-right dismiss" on-tap="onCancelAdd">{{localize('cancel')}}</paper-button>
             </div>
           </template>
@@ -187,13 +162,22 @@
             type: String,
             observer: '_onPageChanged'
           },
-          selectedUser: {
-            value: null,
-            type: Object
-          },
           newUser: {
             value: {},
-            type: Object
+            type: Object,
+            observer: '_onNewUserChanged'
+          },
+          dialogTitleText: {
+            value: "NULL"
+          },
+          dialogButtonText: {
+            value: "NULL"
+          },
+          dialogPasswordPlaceholder: {
+            value: ""
+          },
+          dialogUsernameDisabled: {
+            value: true
           }
         };
       }
@@ -221,10 +205,6 @@
         this.users = request.response;
       }
 
-      editUserBody(user) {
-        return JSON.stringify(user);
-      }
-
       isActive(value) {
         if (value) {
           return this.localize('yes');
@@ -236,18 +216,12 @@
       onEdit(event) {
         var selectedId = event.target.getAttribute('user-id');
         // Deepclone...
-        this.selectedUser = JSON.parse(JSON.stringify(this.users.find(x => x.Id == selectedId)));
+        this.newUser = JSON.parse(JSON.stringify(this.users.find(x => x.Id == selectedId)));
         try {
-          this.$$('#editUserDialog').opened = true;
+          this.$$('#addUserDialog').opened = true;
         } catch (err) {
           this.errorToast = "COULD NOT OPEN DIALOG";
         }
-      }
-
-      onSaveEdit() {
-        this.$$('#saveUser').body = JSON.stringify(this.selectedUser);
-        this.$$('#saveUser').generateRequest();
-        this.isLoading = true;
       }
 
       onSaveAdd() {
@@ -255,7 +229,7 @@
           this.errorToast = this.localize('username_empty_error');
           return;
         }
-        if (!this.newUser.Password) {
+        if (!this.newUser.Password && (this.newUser.Id == 0 || !this.newUser.Id)) {
           this.errorToast = this.localize('password_empty_error');
           return;
         }
@@ -264,34 +238,8 @@
         this.isLoading = true;
       }
 
-      onCancelEdit() {
-        this.$$('#editUserDialog').opened = false;
-      }
       onCancelAdd() {
         this.$$('#addUserDialog').opened = false;
-      }
-
-      onSaveError(response, data) {
-        if (data.request.status == 403) {
-          this.$$('#editUserDialog').opened = false;
-          this.errorToast = this.localize('access_denied', 'error', data.request.response);
-          this.userdata = "{}";
-          this.loggedIn = false;
-        } else if (data.request.status == 401) {
-          this.$$('#editUserDialog').opened = false;
-          this.errorToast = this.localize('access_denied', 'error', data.request.response);
-          this.page = "wheelchairs";
-          window.history.replaceState({}, null, '#/wheelchairs');
-          window.dispatchEvent(new CustomEvent('location-changed'));
-        } else {
-          this.errorToast = this.localize('save_edit_user_error');
-        }
-      }
-
-      onSaveResponse(data, request) {
-        this.users = request.response;
-        this.$$('#editUserDialog').opened = false;
-        this.succesToast = this.localize('save_edit_user_success', 'name', this.selectedUser.Username);
       }
 
       accesslevelToNumber(accessLevel) {
@@ -343,7 +291,7 @@
       onAddResponse(data, request) {
         this.users = request.response;
         this.$$('#addUserDialog').opened = false;
-        this.succesToast = this.localize('add_user_success', 'name', this.newUser.Username);
+        this.succesToast = this.localize('save_user_success', 'name', this.newUser.Username);
       }
 
       onAddError(response, data) {
@@ -359,7 +307,11 @@
           window.history.replaceState({}, null, '#/wheelchairs');
           window.dispatchEvent(new CustomEvent('location-changed'));
         } else {
-          this.errorToast = this.localize('add_user_error', 'error', data.request.response);
+          if (data.request.status == 400) {
+            this.errorToast = this.localize('save_user_error', 'error', data.request.response.Message);
+          } else {
+            this.errorToast = this.localize('save_user_error', 'error', data.request.response);
+          }
         }
       }
 
@@ -375,6 +327,20 @@
           window.dispatchEvent(new CustomEvent('location-changed'));
         } else {
           this.errorToast = this.localize('unknown_error', 'error', data.request.response);
+        }
+      }
+
+      _onNewUserChanged(newValue) {
+        if (newValue.Id && newValue.Id != 0) {
+          this.dialogTitleText = this.localize("edit_user_title");
+          this.dialogButtonText = this.localize("edit");
+          this.dialogPasswordPlaceholder = this.localize("password_unchanged");
+          this.dialogUsernameDisabled = true;
+        } else {
+          this.dialogTitleText = this.localize("add_user_title");
+          this.dialogButtonText = this.localize("add");
+          this.dialogPasswordPlaceholder = "";
+          this.dialogUsernameDisabled = false;
         }
       }
     }

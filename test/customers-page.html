@@ -5,24 +5,24 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
 
-  <title>users-page</title>
+  <title>customers-page</title>
 
   <script src="../bower_components/webcomponentsjs/webcomponents-lite.js"></script>
   <script src="../bower_components/web-component-tester/browser.js"></script>
 
   <!-- Import the element to test -->
-  <link rel="import" href="../src/pages/users-page.html">
+  <link rel="import" href="../src/pages/customers-page.html">
 </head>
 
 <body>
   <test-fixture id="BasicView">
     <template>
-      <users-page></users-page>
+      <customers-page></customers-page>
     </template>
   </test-fixture>
 
   <script>
-    suite('users-page tests', function () {
+    suite('customers-page tests', function () {
       test('Sanity test', function () {
         expect(1).to.not.equal(2);
         expect(1).to.equal(1);
@@ -36,38 +36,24 @@
       test('fixture creation should be succesful', function () {
         var element = fixture('BasicView');
         expect(element.newUser, {});
-        expect(element.is, 'users-page');
+        expect(element.is, 'customers-page');
       });
 
-      test('should return correct time', function () {
+      test('should set new customer', function () {
         var element = fixture('BasicView');
-        element.language = 'en';
-        expect(element.toHumanReadableTime("This is a time")).to.equal(' his is a time');
-      });
-
-      test('should set new user', function () {
-        var element = fixture('BasicView');
-        expect(element.newUser).to.deep.equal({});
-        var spy = sinon.spy(element, 'onAddUser');
-        element.onAddUser();
-        expect(element.newUser).to.deep.equal({
+        expect(element.newCustomer).to.deep.equal({});
+        var spy = sinon.spy(element, 'onAddCustomer');
+        element.onAddCustomer();
+        expect(element.newCustomer).to.deep.equal({
           Id: 0,
-          AccessLevel: "Default",
-          IsActive: true
+          Name: "",
+          Address: "",
+          City: "",
+          Email: "",
+          PhoneNumber: "",
+          Zipcode: ""
         });
         expect(spy).to.have.been.called;
-      });
-
-      test('Should return 1 because user is admin', function () {
-        var element = fixture('BasicView');
-        var spy = sinon.spy(element, 'accesslevelToNumber');
-        expect(element.accesslevelToNumber("Admin")).to.equal(1);
-        expect(spy).to.have.been.called;
-      });
-
-      test('Should return 0 because user is not an admin', function () {
-        var element = fixture('BasicView');
-        expect(element.accesslevelToNumber("Default")).to.equal(0);
       });
 
       test('Should return null because user data does not exist', function () {
@@ -85,7 +71,6 @@
           Token: "abc-def-ghi-jkl-1337"
         });
       });
-
       test('Should handle response correcly', function () {
         var element = fixture('BasicView');
         element.handleResponse(null, {
@@ -94,7 +79,7 @@
           }]
         });
 
-        expect(element.users).to.deep.equal([{
+        expect(element.customers).to.deep.equal([{
           username: "Hey"
         }]);
       });

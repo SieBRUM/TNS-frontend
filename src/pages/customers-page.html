@@ -1,0 +1,346 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="../../bower_components/brum-global-variable/brum-global-variable.html">
+<link rel="import" href="../../bower_components/paper-spinner/paper-spinner-lite.html">
+<link rel="import" href="../../bower_components/app-storage/app-localstorage/app-localstorage-document.html">
+<link rel="import" href="../shared-styles.html">
+<link rel="import" href="../../bower_components/app-localize-behavior/app-localize-behavior.html">
+<link rel="import" href="../../bower_components/paper-datatable-api/paper-datatable-api.html">
+<link rel="import" href="../../bower_components/paper-datatable-api/paper-datatable-api-column.html">
+<link rel="import" href="../../bower_components/paper-spinner/paper-spinner-lite.html">
+<link rel="import" href="../../bower_components/iron-icons/editor-icons.html">
+<link rel="import" href="../../bower_components/iron-icons/social-icons.html">
+<link rel="import" href="../../bower_components/vaadin-dialog/vaadin-dialog.html">
+<link rel="import" href="../../bower_components/paper-checkbox/paper-checkbox.html">
+<link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
+
+<dom-module id="customers-page">
+  <template>
+    <style include="shared-styles">
+      :host {
+        display: block;
+
+        padding: 10px;
+      }
+
+      .center {
+        text-align: center;
+      }
+
+      @media only screen and (min-width: 1224px) {
+        .dialog {
+          width: 80vh;
+        }
+      }
+
+      @media only screen and (min-width: 1824px) {
+        .dialog {
+          width: 80vh;
+        }
+      }
+
+      .pull-right {
+        float: right;
+      }
+
+      paper-button.confirm {
+        background-color: #28A745;
+        color: white;
+      }
+
+      paper-button.dismiss {
+        color: #ff0033;
+      }
+    </style>
+    <brum-global-variable key="successtoast" value="{{succesToast}}"></brum-global-variable>
+    <brum-global-variable key="errortoast" value="{{errorToast}}"></brum-global-variable>
+    <brum-global-variable key="loggedin" value="{{loggedIn}}"></brum-global-variable>
+    <brum-global-variable key="language" value="{{language}}"></brum-global-variable>
+    <brum-global-variable key="page" value="{{page}}"></brum-global-variable>
+
+    <app-localstorage-document key="userdata" data="{{userdata}}"></app-localstorage-document>
+
+    <iron-ajax id="getallcustomers" url="/backend/api/customers" handle-as="json" on-response="handleResponse" loading="{{isLoading}}"
+      headers="[[userParams(userdata)]]" method="GET" with-credentials content-type="application/json" on-error="handleError"></iron-ajax>
+    <iron-ajax id="addCustomer" url="/backend/api/customers" handle-as="json" on-response="onAddResponse" on-error="onAddError"
+      loading="{{isLoading}}" headers="[[userParams(userdata)]]" method="POST" with-credentials content-type="application/json"></iron-ajax>
+
+
+
+    <div class="card card-table">
+      <h1>
+        {{localize('customers')}}
+        <paper-icon-button icon="social:person-add" class="pull-right" on-tap="onAddCustomer" title$="{{localize('add_customer_title')}}"></paper-icon-button>
+      </h1>
+      <template is="dom-if" if="[[isLoading]]">
+        <div class="center">
+          <paper-spinner-lite active></paper-spinner-lite>
+        </div>
+      </template>
+
+      <template is="dom-if" if="[[hasChanged]]" restamp="true">
+        <paper-datatable-api data="[[customers]]">
+          <paper-datatable-api-column header="{{localize('customer_name')}}" property="Name">
+            <template>
+              <span>{{value}}</span>
+            </template>
+          </paper-datatable-api-column>
+          <paper-datatable-api-column header="Email" property="Email">
+            <template>
+              <span>{{value}}</span>
+            </template>
+          </paper-datatable-api-column>
+          <paper-datatable-api-column header="{{localize('phone_number')}}" property="PhoneNumber">
+            <template>
+              <span>{{value}}</span>
+            </template>
+          </paper-datatable-api-column>
+          <paper-datatable-api-column header="{{localize('address')}}" property="Address">
+            <template>
+              <span>{{value}}</span>
+            </template>
+          </paper-datatable-api-column>
+          <paper-datatable-api-column header="{{localize('city')}}" property="City">
+            <template>
+              <span>{{value}}</span>
+            </template>
+          </paper-datatable-api-column>
+          <paper-datatable-api-column header="{{localize('zipcode')}}" property="Zipcode">
+            <template>
+              <span>{{value}}</span>
+            </template>
+          </paper-datatable-api-column>
+          <paper-datatable-api-column header="{{localize('actions')}}" property="Id">
+            <template>
+              <paper-icon-button icon="editor:mode-edit" on-tap="onEditCustomer" customer-id$="[[value]]" title$="{{localize('edit')}}"></paper-icon-button>
+              <paper-icon-button icon="icons:accessible" on-tap="onAddWheelchair" customer-id$="[[value]]" title$="{{localize('add_wheelchair_title')}}"></paper-icon-button>
+            </template>
+          </paper-datatable-api-column>
+        </paper-datatable-api>
+
+        <!-- Start Add customer dialog -->
+        <vaadin-dialog id="customerDialog" no-close-on-outside-click>
+          <template>
+            <div class="dialog">
+              <h1>{{dialogTitleText}}</h1>
+              <paper-input label="{{localize('customer_name')}}" value="{{newCustomer.Name}}" char-counter maxlength="50"></paper-input>
+              <paper-input label="Email" value="{{newCustomer.Email}}" char-counter maxlength="50"></paper-input>
+              <paper-input label="{{localize('phone_number')}}" value="{{newCustomer.PhoneNumber}}" char-counter maxlength="50"></paper-input>
+              <paper-input label="{{localize('city')}}" value="{{newCustomer.City}}" char-counter maxlength="50"></paper-input>
+              <paper-input label="{{localize('zipcode')}}" value="{{newCustomer.Zipcode}}" char-counter maxlength="50"></paper-input>
+              <paper-input label="{{localize('address')}}" value="{{newCustomer.Address}}" char-counter maxlength="50"></paper-input>
+              <br>
+              <paper-button class="confirm" on-tap="onSaveAdd">{{dialogButtonText}}</paper-button>
+              <paper-button class="pull-right dismiss" on-tap="onCancelAdd">{{localize('cancel')}}</paper-button>
+            </div>
+          </template>
+        </vaadin-dialog>
+        <!-- End Add customer dialog -->
+      </template>
+    </div>
+  </template>
+</dom-module>
+
+<script>
+  class CustomersPage extends Polymer.mixinBehaviors([Polymer.AppLocalizeBehavior], Polymer.Element) {
+    static get is() {
+      return 'customers-page';
+    }
+    static get properties() {
+      return {
+        isLoading: {
+          type: Boolean,
+          value: true
+        },
+        succesToast: String,
+        errorToast: String,
+        userdata: String,
+        customers: Array,
+        hasChanged: {
+          type: Boolean,
+          value: true
+        },
+        language: {
+          type: String,
+          observer: '_hasLanguageChanged'
+        },
+        page: {
+          type: String,
+          observer: '_onPageChanged'
+        },
+        newCustomer: {
+          type: Object,
+          value: {},
+          observer: '_onNewCustomerChanged'
+        },
+        dialogTitleText: {
+          value: "NULL"
+        },
+        dialogButtonText: {
+          value: "NULL"
+        }
+      };
+    }
+
+    connectedCallback() {
+      super.connectedCallback();
+      this.loadResources(this.resolveUrl('../../locales.json'));
+    }
+
+    userParams(userdata) {
+      if (Object.keys(userdata).length == 0) {
+        return null;
+      }
+
+      var user = JSON.parse(userdata);
+      var requestBody = {
+        Username: user.username,
+        Token: user.accesstoken
+      };
+
+      return requestBody;
+    }
+
+    handleResponse(data, request) {
+      this.customers = request.response;
+    }
+
+    handleError(response, data) {
+      if (data.request.status == 403) {
+        this.errorToast = this.localize('access_denied', 'error', data.request.response);
+        this.userdata = "{}";
+        this.loggedIn = false;
+      } else if (data.request.status == 401) {
+        this.errorToast = this.localize('access_denied', 'error', data.request.response);
+        this.page = "wheelchairs";
+        window.history.replaceState({}, null, '#/wheelchairs');
+        window.dispatchEvent(new CustomEvent('location-changed'));
+      } else {
+        this.errorToast = this.localize('unknown_error', 'error', data.request.response);
+      }
+    }
+
+    onAddCustomer() {
+      this.newCustomer = {
+        Id: 0,
+        Name: "",
+        Address: "",
+        City: "",
+        Email: "",
+        PhoneNumber: "",
+        Zipcode: ""
+      };
+
+      // have to use try catch because currently, unit testing does not support this behavior
+      try {
+        this.$$('#customerDialog').opened = true;
+      } catch (err) {
+        this.errorToast = "COULD NOT OPEN DIALOG";
+      }
+    }
+
+    onSaveAdd() {
+      if (!this.newCustomer.Name) {
+        this.errorToast = this.localize('name_empty_error');
+        return;
+      }
+      if (!this.newCustomer.Address) {
+        this.errorToast = this.localize('address_empty_error');
+        return;
+      }
+      if (!this.newCustomer.City) {
+        this.errorToast = this.localize('city_empty_error');
+        return;
+      }
+      if (!this.newCustomer.Email) {
+        this.errorToast = this.localize('email_empty_error');
+        return;
+      }
+      if (!this.newCustomer.PhoneNumber) {
+        this.errorToast = this.localize('phone_number_empty_error');
+        return;
+      }
+      if (!this.newCustomer.Zipcode) {
+        this.errorToast = this.localize('zipcode_empty_error');
+        return;
+      }
+      this.$$('#addCustomer').body = JSON.stringify(this.newCustomer);
+      this.$$('#addCustomer').generateRequest();
+      this.isLoading = true;
+    }
+
+
+    // EDIT ALLE ERRORS
+    onAddError(response, data) {
+      if (data.request.status == 403) {
+        this.$$('#customerDialog').opened = false;
+        this.errorToast = this.localize('access_denied', 'error', data.request.response);
+        this.userdata = "{}";
+        this.loggedIn = false;
+      } else if (data.request.status == 401) {
+        this.$$('#customerDialog').opened = false;
+        this.errorToast = this.localize('access_denied', 'error', data.request.response);
+        this.page = "wheelchairs";
+        window.history.replaceState({}, null, '#/wheelchairs');
+        window.dispatchEvent(new CustomEvent('location-changed'));
+      } else {
+        this.errorToast = this.localize('save_customer_error', 'error', data.request.response);
+      }
+    }
+
+    onAddResponse(data, request) {
+      this.customers = request.response;
+      this.$$('#customerDialog').opened = false;
+      // TODO
+      this.succesToast = this.localize('save_customer_succcess', 'name', this.newCustomer.Name);
+    }
+
+    onCancelAdd() {
+      this.$$('#customerDialog').opened = false;
+    }
+
+    _hasLanguageChanged() {
+      // Doing this so table gets rebuild.. Kinda hacky but hey, it works!
+      this.hasChanged = false;
+      var that = this;
+      this.isLoading = true;
+      setTimeout(function () {
+        that.isLoading = false;
+        that.hasChanged = true;
+      }, 300);
+    }
+
+    _onPageChanged() {
+      if (this.page == "customers") {
+        this.$.getallcustomers.generateRequest();
+      }
+    }
+
+    onEditCustomer(event) {
+      var selectedId = event.target.getAttribute('customer-id');
+      // Deepclone...
+      this.newCustomer = JSON.parse(JSON.stringify(this.customers.find(x => x.Id == selectedId)));
+      try {
+        this.$$('#customerDialog').opened = true;
+      } catch (err) {
+        this.errorToast = "COULD NOT OPEN DIALOG";
+      }
+    }
+
+    _onNewCustomerChanged(newValue) {
+      if (newValue.Id && newValue.Id != 0) {
+        this.dialogTitleText = this.localize("edit_customer_title");
+        this.dialogButtonText = this.localize("edit");
+      } else {
+        this.dialogTitleText = this.localize("add_customer_title");
+        this.dialogButtonText = this.localize("add");
+      }
+    }
+  }
+
+  window.customElements.define(CustomersPage.is, CustomersPage);
+</script>
+</dom-module>
