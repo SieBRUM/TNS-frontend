@@ -31,7 +31,7 @@
         "seat_depth": "C - Depth of seat",
         "seat_width": "A - Width of seat",
         "seat_height_back": "G - Height back of seat",
-        "seat_height_front": "F - Height front of seat"
+        "seat_height_front": "F - Height front of seat",
         "edit_user_title": "Edit user",
         "add_user_title": "Add user",
         "add": "Add",
@@ -102,7 +102,7 @@
         "seat_depth": "C - Diepte zitgedeelte",
         "seat_width": "A - Breedte zitgedeelte",
         "seat_height_back": "G - Hoogte rugleuning",
-        "seat_height_front": "F - Hoogte voorkant zitgedeelte"
+        "seat_height_front": "F - Hoogte voorkant zitgedeelte",
         "edit_user_title": "Wijzig gebruiker",
         "add_user_title": "Gebruiker toevoegen",
         "add": "Toevoegen",
