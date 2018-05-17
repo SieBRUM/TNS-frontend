@@ -68,8 +68,6 @@
     <iron-ajax id="addCustomer" url="/backend/api/customers" handle-as="json" on-response="onAddResponse" on-error="onAddError"
       loading="{{isLoading}}" headers="[[userParams(userdata)]]" method="POST" with-credentials content-type="application/json"></iron-ajax>
 
-
-
     <div class="card card-table">
       <h1>
         {{localize('customers')}}

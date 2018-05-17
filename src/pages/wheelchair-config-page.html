@@ -1,18 +1,13 @@
 <link rel="import" href="../../bower_components/polymer/polymer-element.html">
-<link rel="import" href="../../bower_components/iron-form/iron-form.html">
 <link rel="import" href="../../bower_components/paper-input/paper-input.html">
 <link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
 <link rel="import" href="../../bower_components/brum-global-variable/brum-global-variable.html">
-<link rel="import" href="../../bower_components/paper-spinner/paper-spinner-lite.html">
 <link rel="import" href="../../bower_components/app-storage/app-localstorage/app-localstorage-document.html">
 <link rel="import" href="../shared-styles.html">
 <link rel="import" href="../../bower_components/app-localize-behavior/app-localize-behavior.html">
-<link rel="import" href="../../bower_components/paper-datatable-api/paper-datatable-api.html">
-<link rel="import" href="../../bower_components/paper-datatable-api/paper-datatable-api-column.html">
-<link rel="import" href="../../bower_components/paper-spinner/paper-spinner-lite.html">
 <link rel="import" href="../../bower_components/iron-icons/editor-icons.html">
 <link rel="import" href="../../bower_components/vaadin-dialog/vaadin-dialog.html">
 <link rel="import" href="../../bower_components/paper-checkbox/paper-checkbox.html">
@@ -21,6 +16,7 @@
 <link rel="import" href="../../bower_components/l2t-paper-color/l2t-paper-color.html">
 <link rel="import" href="../../bower_components/paper-radio-button/paper-radio-button.html">
 <link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../../bower_components/paper-spinner/paper-spinner-lite.html">
 
 <dom-module id="wheelchair-config-page">
   <template>
@@ -93,10 +89,6 @@
         }
       }
 
-      .custom {
-        font-size: 2px;
-      }
-
       .card {
         margin: 24px;
         padding: 16px;
@@ -110,50 +102,46 @@
         column-gap: 10px;
         display: flex;
       }
-
-      .custom-parent {
-        font-size: 12px;
-      }
-
-      paper-input.custom:hover {
-        border: 1px solid #29B6F6;
-      }
-
-      paper-input.custom {
-        margin-bottom: 14px;
-        --primary-text-color: #01579B;
-        --paper-input-container-color: black;
-        --paper-input-container-focus-color: black;
-        --paper-input-container-invalid-color: black;
-        border: 1px solid #BDBDBD;
-        border-radius: 5px;
-      }
     </style>
     <brum-global-variable key="successtoast" value="{{succesToast}}"></brum-global-variable>
     <brum-global-variable key="errortoast" value="{{errorToast}}"></brum-global-variable>
     <brum-global-variable key="loggedin" value="{{loggedIn}}"></brum-global-variable>
     <brum-global-variable key="language" value="{{language}}"></brum-global-variable>
+    <brum-global-variable key="page" value="{{page}}"></brum-global-variable>
+    <brum-global-variable key="wheelchairid" value="{{wheelchairId}}"></brum-global-variable>
 
     <app-localstorage-document key="userdata" data="{{userdata}}"></app-localstorage-document>
 
-    <iron-ajax id="getArticles" auto url="/backend/api/wheelchair/products" handle-as="json" on-error="handleError" on-response="handleResponse"
-      headers="[[userParams(userdata)]]">
+    <iron-ajax id="getArticles" url="/backend/api/wheelchair/products" handle-as="json" on-error="handleError" on-response="handleResponse"
+      headers="[[userParams(userdata)]]" loading="{{isLoading}}">
+    </iron-ajax>
+    <iron-ajax id="getwheelchair" url="/backend/api/wheelchair/{{wheelchairId}}" handle-as="json" on-error="handleGetError" on-response="handleGetResponse"
+      headers="[[userParams(userdata)]]" loading="{{isLoading}}">
     </iron-ajax>
     <iron-ajax id="saveWheelchairs" url="/backend/api/wheelchair" handle-as="json" on-response="onSaveResponse" on-error="onSaveError"
-      loading="{{isLoading}}" body="[[wheelchairParams(newWheelchair)]]" headers="[[userParams(userdata)]]" method="POST" with-credentials
-      content-type="application/json"></iron-ajax>
+      loading="{{isLoading}}" headers="[[userParams(userdata)]]" method="POST" with-credentials content-type="application/json"></iron-ajax>
 
     <vaadin-dialog id="addNotesDialog" no-close-on-outside-click>
       <template>
-        <div class="dialog" style="column-count: 2">
-          <paper-textarea label="Notities" value="{{Comment}}"></paper-textarea>
-          <paper-input label="Korting" value="{{Discount}}" style="width: 25%"></paper-input>
-          <paper-input label="Aantal" value="{{Amount}}" style="width: 25%"></paper-input>
+        <div class="dialog">
+          <h1>{{localize('add_addition')}} ({{selectedArticle.Description}})</h1>
+          <paper-textarea label="{{localize('comment')}}" value="{{addition.Comment}}"></paper-textarea>
+          <paper-input label="{{localize('discount')}}" value="{{addition.Discount}}" type="number"></paper-input>
+          <paper-input label="{{localize('amount')}}" value="{{addition.Amount}}" type="number"></paper-input>
           <br>
           <paper-button on-tap="onCancel" class="pull-right dismiss">{{localize('cancel')}}</paper-button>
-          <paper-button on-tap="onSaveNotes" class="confirm" style="float: right">{{localize('save')}}</paper-button>
+          <paper-button on-tap="onSaveNotes" class="confirm">{{localize('save')}}</paper-button>
           <br>
+        </div>
+      </template>
+    </vaadin-dialog>
+
+    <vaadin-dialog id="loadingDialog" no-close-on-esc no-close-on-outside-click>
+      <template>
+        <div style="text-align: center;">
+          {{localize('loading')}}...
           <br>
+          <paper-spinner-lite active></paper-spinner-lite>
         </div>
       </template>
     </vaadin-dialog>
@@ -162,90 +150,95 @@
       <div>
         <img src=".\images\A-I_wheelchair.png" class="wheelchairDimImg">
         <div style="column-count: 3; margin-bottom: 20px;">
-          <paper-input id="SeatWidth" label="{{localize('seat_width')}}" value="{{SeatWidth}}"></paper-input>
-          <paper-input id="FootplateWidth" label="{{localize('footplate_width')}}" value="{{FootplateWidth}}"></paper-input>
-          <paper-input id="SeatDepth" label="{{localize('seat_depth')}}" value="{{SeatDepth}}"></paper-input>
-          <paper-input id="FrameLength" label="{{localize('frame_length')}}" value="{{FrameLength}}"></paper-input>
-          <paper-input id="BackrestHeight" label="{{localize('backrest_height')}}" value="{{BackrestHeight}}"></paper-input>
-          <paper-input id="SeatheightFront" label="{{localize('seat_height_front')}}" value="{{SeatheightFront}}"></paper-input>
-          <paper-input id="SeatheightBack" label="{{localize('seat_height_back')}}" value="{{SeatheightBack}}"></paper-input>
-          <paper-input id="BalancePoint" label="{{localize('balance_point')}}" value="{{BalancePoint}}"></paper-input>
-          <paper-input id="LowerLegWidth" label="{{localize('lowerleg_width')}}" value="{{LowerLegWidth}}"></paper-input>
+          <paper-input id="SeatWidth" label="{{localize('seat_width')}}" value="{{newWheelchair.SeatWidth}}" type="number"></paper-input>
+          <paper-input id="FootplateWidth" label="{{localize('footplate_width')}}" value="{{newWheelchair.FootplateWidth}}" type="number"></paper-input>
+          <paper-input id="SeatDepth" label="{{localize('seat_depth')}}" value="{{newWheelchair.SeatDepth}}" type="number"></paper-input>
+          <paper-input id="FrameLength" label="{{localize('frame_length')}}" value="{{newWheelchair.FrameLength}}" type="number"></paper-input>
+          <paper-input id="BackrestHeight" label="{{localize('backrest_height')}}" value="{{newWheelchair.BackrestHeight}}" type="number"></paper-input>
+          <paper-input id="SeatheightFront" label="{{localize('seat_height_front')}}" value="{{newWheelchair.SeatHeightFront}}" type="number"></paper-input>
+          <paper-input id="SeatheightBack" label="{{localize('seat_height_back')}}" value="{{newWheelchair.SeatHeightBack}}" type="number"></paper-input>
+          <paper-input id="BalancePoint" label="{{localize('balance_point')}}" value="{{newWheelchair.BalancePoint}}" type="number"></paper-input>
+          <paper-input id="LowerLegWidth" label="{{localize('lowerleg_width')}}" value="{{newWheelchair.LowerLegWidth}}" type="number"></paper-input>
         </div>
         <paper-button class="cancel" style="float:left">{{localize('cancel')}}</paper-button>
         <paper-button class="confirm" style="float:right" on-tap="onSave">{{localize('save')}}</paper-button>
         <paper-button class="preview" on-tap="showWheelchairPreviewDialog" style="float:right">{{localize('preview')}}</paper-button>
       </div>
       <div class="collapsebox">
-        <paper-collapse-item id="articles" class="styled" header="Artikelen">
+        <paper-collapse-item id="articles" class="styled" header="{{localize('articles')}}">
           <br>
           <template is="dom-repeat" id="articleList" items="{{articles}}">
-            <paper-checkbox on-tap="toggleSelection">[[item.Description]]
-              <b>[[item.Price]]</b>
-              <paper-icon-button icon="editor:mode-edit" article-id$="[[value]]" on-tap="addNotes"></paper-icon-button>
+            <paper-checkbox on-tap="toggleSelection" checked="{{isArticleChecked(item, newWheelchair.Articles)}}">[[item.Description]]
+              <b>€[[item.Price]]</b>
             </paper-checkbox>
+            <paper-icon-button icon="editor:mode-edit" product$="[[item]]" on-tap="addArticleNote"></paper-icon-button>
             <br/>
           </template>
           <!-- gets all selected checkboxes and put it in a list -->
-          <array-selector id="arraySelector" items="{{articles}}" selected="{{selected}}" multi toggle></array-selector>
-
+          <array-selector id="arraySelector" items="{{articles}}" selected="{{newWheelchair.Articles}}" multi toggle></array-selector>
         </paper-collapse-item>
-        <paper-collapse-item id="frontwheels" header="Voorwielen">
+
+        <paper-collapse-item id="frontwheels" header="{{localize('frontwheels')}}">
           <paper-radio-group>
             <template is="dom-repeat" items="[[frontwheels]]">
-              <paper-radio-button selectedFrontWheels$="[[index]]" name="{{item.Description}}" on-tap="frontWheelsCollapse">[[item.Description]]
+              <paper-radio-button selectedFrontwheels$="[[index]]" name="{{item.Description}}" on-tap="frontWheelsCollapse" checked="{{isFrontwheelChecked(item, newWheelchair.Frontwheels)}}">[[item.Description]]
                 <b>€[[item.Price]]</b>
-                <paper-icon-button icon="editor:mode-edit" article-id$="[[value]]" on-tap="addNotes"></paper-icon-button>
               </paper-radio-button>
+              <paper-icon-button icon="editor:mode-edit" product$="[[item]]" selectedFrontwheels$="[[index]]" on-tap="addFrontwheelNote"></paper-icon-button>
               <br/>
             </template>
           </paper-radio-group>
         </paper-collapse-item>
-        <paper-collapse-item id="hoops" header="Hoepels">
+
+        <paper-collapse-item id="hoops" header="{{localize('hoops')}}">
           <paper-radio-group>
             <template is="dom-repeat" items="[[hoops]]">
-              <paper-radio-button selectedHoops$="[[index]]" name="{{item.Description}}" on-tap="hoopsCollapse">[[item.Description]]
+              <paper-radio-button selectedHoops$="[[index]]" name="{{item.Description}}" on-tap="hoopsCollapse" checked="{{isHoopChecked(item, newWheelchair.Hoops)}}">[[item.Description]]
                 <b>€[[item.Price]]</b>
-                <paper-icon-button icon="editor:mode-edit" article-id$="[[value]]" on-tap="addNotes"></paper-icon-button>
               </paper-radio-button>
+              <paper-icon-button icon="editor:mode-edit" product$="[[item]]" selectedHoops$="[[index]]" on-tap="addHoopNote"></paper-icon-button>
               <br />
             </template>
           </paper-radio-group>
         </paper-collapse-item>
-        <paper-collapse-item id="wheels" header="Wielen">
+
+        <paper-collapse-item id="wheels" header="{{localize('wheels')}}">
           <paper-radio-group>
             <template is="dom-repeat" items="[[wheels]]">
-              <paper-radio-button selectedWheels$="[[index]]" name="{{item.Description}}" on-tap="wheelsCollapse">[[item.Description]]
+              <paper-radio-button selectedWheels$="[[index]]" name="{{item.Description}}" on-tap="wheelsCollapse" checked="{{isWheelChecked(item, newWheelchair.Wheels)}}">[[item.Description]]
                 <b>€[[item.Price]]</b>
-                <paper-icon-button icon="editor:mode-edit" article-id$="[[value]]" on-tap="addNotes"></paper-icon-button>
               </paper-radio-button>
+              <paper-icon-button icon="editor:mode-edit" product$="[[item]]" selectedWheels$="[[index]]" on-tap="addWheelNote"></paper-icon-button>
               <br />
             </template>
           </paper-radio-group>
         </paper-collapse-item>
-        <paper-collapse-item id="tires" header="Banden">
+
+        <paper-collapse-item id="tires" header="{{localize('tires')}}">
           <paper-radio-group>
             <template is="dom-repeat" items="[[tires]]">
-              <paper-radio-button selectedTires$="[[index]]" name="{{item.Description}}" on-tap="tiresCollapse">[[item.Description]]
+              <paper-radio-button selectedTires$="[[index]]" name="{{item.Description}}" on-tap="tiresCollapse" checked="{{isTireChecked(item, newWheelchair.Tires)}}">[[item.Description]]
                 <b>€[[item.Price]]</b>
-                <paper-icon-button icon="editor:mode-edit" article-id$="[[value]]" on-tap="addNotes"></paper-icon-button>
               </paper-radio-button>
+              <paper-icon-button icon="editor:mode-edit" product$="[[item]]" selectedTires$="[[index]]" on-tap="addTireNote"></paper-icon-button>
               <br/>
             </template>
           </paper-radio-group>
         </paper-collapse-item>
-        <paper-collapse-item id="wheelprotectors" header="Wiel beschermers">
+
+        <paper-collapse-item id="wheelprotectors" header="{{localize('wheel_protectors')}}">
           <paper-radio-group>
             <template is="dom-repeat" items="[[wheelprotectors]]">
-              <paper-radio-button selectedWheelProtectors$="[[index]]" name="{{item.Description}}" on-tap="wheelProtectorsCollapse">[[item.Description]]
+              <paper-radio-button selectedWheelprotectors$="[[index]]" name="{{item.Description}}" on-tap="wheelProtectorsCollapse" checked="{{isWheelprotectorChecked(item, newWheelchair.Wheelprotectors)}}">[[item.Description]]
                 <b>€[[item.Price]]</b>
-                <paper-icon-button icon="editor:mode-edit" article-id$="[[value]]" on-tap="addNotes"></paper-icon-button>
               </paper-radio-button>
+              <paper-icon-button icon="editor:mode-edit" product$="[[item]]" selectedWheelprotectors$="[[index]]" on-tap="addWheelprotectorNote"></paper-icon-button>
               <br/>
             </template>
           </paper-radio-group>
         </paper-collapse-item>
-        <paper-collapse-item id="wheelchaircolor" header="Kleur">
+
+        <paper-collapse-item id="wheelchaircolor" header="{{localize('color')}}">
           <l2t-paper-color value="{{wheelchairColor}}" colors='{{ralColorCodes}}' hide-advanced></l2t-paper-color>
         </paper-collapse-item>
       </div>
@@ -260,8 +253,7 @@
       static get properties() {
         return {
           language: {
-            type: String,
-            observer: '_hasLanguageChanged'
+            type: String
           },
           articles: {
             type: Array
@@ -288,84 +280,153 @@
             type: Array
           },
           newWheelchair: {
-            value: `{
-              "Addition": [],
-              "Articles": [],
-              "FrontWheels": [],
-              "Hoops": [],
-              "Wheels": [],
-              "Tires": [],
-              "WheelProtector": [],
-              "Color": {}
-            }`,
-            type: String
+            value: {
+              Addition: [],
+              Articles: [],
+              Frontwheels: [],
+              Hoops: [],
+              Wheels: [],
+              Tires: [],
+              Wheelprotectors: [],
+              Color: {}
+            },
+            type: Object
           },
           selectedArticle: {
+            value: {},
             type: Object
           },
           addition: {
-            type: Array
+            value: {},
+            type: Object
           },
           wheelchairColor: {
             value: "#F5FF00",
             observer: 'onWheelchairColorChanged'
           },
           userdata: {
-            type: String,
-            observer: '_onUserChanged'
+            type: String
           },
+          page: {
+            type: String,
+            observer: '_onPageChanged'
+          },
+          isLoading: {
+            observer: "_onLoadingChanged"
+          }
         };
       }
-      _hasLanguageChanged() {
-        this.hasChanged = false;
-        var that = this;
-        this.isLoading = true;
-        setTimeout(function () {
-          that.isLoading = false;
-          that.hasChanged = true;
-        }, 300);
+
+      connectedCallback() {
+        super.connectedCallback();
+        this.loadResources(this.resolveUrl('../../locales.json'));
       }
+
+      isArticleChecked(article, selectedArticles) {
+        var shouldChecked = false;
+        selectedArticles.forEach(selected => {
+          if (selected.ArticleId == article.ArticleId) {
+            shouldChecked = true;
+          }
+        });
+        return shouldChecked;
+      }
+
+      isFrontwheelChecked(frontwheel, selectedFrontwheels) {
+        var shouldChecked = false;
+        selectedFrontwheels.forEach(selected => {
+          if (selected.FrontWheelId == frontwheel.FrontWheelId) {
+            shouldChecked = true;
+          }
+        });
+        return shouldChecked;
+      }
+
+      isHoopChecked(hoop, selectedHoops) {
+        var shouldChecked = false;
+        selectedHoops.forEach(selected => {
+          if (selected.HoopId == hoop.HoopId) {
+            shouldChecked = true;
+          }
+        });
+        return shouldChecked;
+      }
+
+      isWheelChecked(wheel, selectedWheels) {
+        var shouldChecked = false;
+        selectedWheels.forEach(selected => {
+          if (selected.WheelId == wheel.WheelId) {
+            shouldChecked = true;
+          }
+        });
+        return shouldChecked;
+      }
+
+      isTireChecked(tire, selectedTires) {
+        var shouldChecked = false;
+        selectedTires.forEach(selected => {
+          if (selected.TireId == tire.TireId) {
+            shouldChecked = true;
+          }
+        });
+        return shouldChecked;
+      }
+
+
+      isWheelprotectorChecked(wheelprotector, selectedWheelprotector) {
+        var shouldChecked = false;
+        selectedWheelprotector.forEach(selected => {
+          if (selected.WheelprotectorId == wheelprotector.WheelprotectorId) {
+            shouldChecked = true;
+          }
+        });
+        return shouldChecked;
+      }
+
       handleResponse(data, request) {
         this.articles = request.response.Articles;
-        this.articles.forEach(function (article) {
-          article.ArticleId = article.Id;
-          delete article["Id"];
-        });
         this.wheels = request.response.Wheel;
         this.frontwheels = request.response.FrontWheels;
         this.hoops = request.response.Hoops;
         this.tires = request.response.Tires;
         this.wheelprotectors = request.response.WheelProtector;
+        this._convertToBackendObjects();
+
         this.ralcolors = request.response.RalColors;
         this.ralColorCodes = [];
         var that = this;
         this.ralcolors.forEach(function (color) {
           that.ralColorCodes.push(color.HexColorCode);
         });
-        console.log(this.wheels);
       }
       onCancel() {
         this.$$('#addNotesDialog').opened = false;
       }
-      addNotes(event) {
-        var selectedId = event.target.getAttribute('article-id');
-        this.selectedArticle = JSON.parse(JSON.stringify(this.articles.find(x => x.Id == selectedId)));
-        console.log(this.selectedArticle);
-        this.$$('#addNotesDialog').opened = true;
-      }
+
       onSaveNotes() {
-        var newWheelchair = JSON.parse(this.newWheelchair);
-        newWheelchair.Addition.Comment = this.Comment;
-        newWheelchair.Addition.Discount = this.Discount;
-        newWheelchair.Addition.Amount = this.Amount;
-        this.newWheelchair = JSON.stringify(newWheelchair);
-        console.log("Addition is: ", newWheelchair);
+        var that = this;
+        if (this.selectedArticle.Type == "Article") {
+          this._saveArticleNote();
+        } else if (this.selectedArticle.Type == "Wheelprotector") {
+          this._saveWheelprotectorNote();
+        } else if (this.selectedArticle.Type == "Tire") {
+          this._saveTireNote();
+        } else if (this.selectedArticle.Type == "Frontwheel") {
+          this._saveFrontwheelNote();
+        } else if (this.selectedArticle.Type == "Hoop") {
+          this._saveHoopNote();
+        } else if (this.selectedArticle.Type == "Wheel") {
+          this._saveWheelNote();
+        } else {
+          this.newWheelchair.Addition = this.Addition;
+        }
         this.$$('#addNotesDialog').opened = false;
       }
+
       onSaveError(event) {
-        console.log(event);
         this.errorToast = event.detail.request.xhr.statusText;
       }
+
       handleError(response, data) {
         if (data.request.status == 403) {
           this.errorToast = this.localize('access_denied', 'error', data.request.response);
@@ -375,107 +436,109 @@
           this.errorToast = this.localize('unknown_error', 'error', data.request.response);
         }
       }
+
       onSave() {
-        var newWheelchair = JSON.parse(this.newWheelchair);
-        newWheelchair.FootplateWidth = this.FootplateWidth;
-        newWheelchair.SeatDepth = this.SeatDepth;
-        newWheelchair.FrameLength = this.FrameLength;
-        newWheelchair.BackrestHeight = this.BackrestHeight;
-        newWheelchair.SeatheightFront = this.SeatheightFront;
-        newWheelchair.SeatheightBack = this.SeatheightBack;
-        newWheelchair.BalancePoint = this.BalancePoint;
-        newWheelchair.LowerLegWidth = this.LowerLegWidth;
-        this.newWheelchair = JSON.stringify(newWheelchair);
+        this.$$('#saveWheelchairs').body = JSON.stringify(this.newWheelchair);
         this.$$('#saveWheelchairs').generateRequest();
       }
-      wheelchairParams(wheelchairData) {
-        return JSON.parse(wheelchairData);
-      }
-      toggleSelection(e) {
-        let item = this.$.articleList.itemForElement(e.target);
+
+      toggleSelection(event) {
+        let item = this.$.articleList.itemForElement(event.target);
         this.$.arraySelector.select(item);
-        var newWheelchair = JSON.parse(this.newWheelchair);
-        var articlesSelected = this.$.arraySelector.selected;
-        newWheelchair.Articles = articlesSelected;
-        this.newWheelchair = JSON.stringify(newWheelchair);
-        if (newWheelchair.Articles.length == 1) {
-          this.$.articles.header = "Artikelen : <u style='color:green'>" + newWheelchair.Articles.length +
-            " artikel geselecteerd</u>";
+        this.notifyPath('newWheelchair.Articles');
+        if (this.newWheelchair.Articles.length == 1) {
+          this.$.articles.header = "Artikelen : <u style='color:green'> 1 artikel geselecteerd</u>";
         } else {
-          this.$.articles.header = "Artikelen : <u style='color:green'>" + newWheelchair.Articles.length +
-            " artikelen geselecteerd</u>";
+          this.$.articles.header =
+            `Artikelen : <u style='color:green'> ${this.newWheelchair.Articles.length} artikelen geselecteerd</u>`;
         }
       }
+
       frontWheelsCollapse(event) {
-        var newWheelchair = JSON.parse(this.newWheelchair);
         this.$.frontwheels._toggleOpened(null);
-        var index = event.target.attributes.getNamedItem('selectedFrontWheels').value;
-        var itemSelected = this.frontwheels[index].Description;
-        newWheelchair.FrontWheels = [];
-        newWheelchair.FrontWheels.push(this.frontwheels[index]);
-        this.newWheelchair = JSON.stringify(newWheelchair);
-        this.$.frontwheels.header = "Voorwielen : <u style='color:green'>" + newWheelchair.FrontWheels[0].Description;
+        var index = event.target.attributes.getNamedItem('selectedFrontwheels').value;
+        this.newWheelchair.Frontwheels = [];
+        this.newWheelchair.Frontwheels.push(this.frontwheels[index]);
+        this.notifyPath('newWheelchair.Frontwheels');
+        this.$.frontwheels.header =
+          `Voorwielen : <u style='color:green'> ${this.newWheelchair.Frontwheels[0].Description}`;
       }
 
       hoopsCollapse(event) {
-        var newWheelchair = JSON.parse(this.newWheelchair);
         this.$.hoops._toggleOpened(null);
         var index = event.target.attributes.getNamedItem('selectedHoops').value;
-        var itemSelected = this.hoops[index].Description;
-        newWheelchair.Hoops = this.hoops[index];
-        this.newWheelchair = JSON.stringify(newWheelchair);
-        this.$.hoops.header = "Hoepels : <u style='color:green'>" + newWheelchair.Hoops.Description;
-      }
-      wheelsCollapse(event) {
-        var newWheelchair = JSON.parse(this.newWheelchair);
-        this.$.wheels._toggleOpened(null);
-        var index = event.target.attributes.getNamedItem('selectedWheels').value;
-        var itemSelected = this.wheels[index].Description;
-        //.push maakt het stuk
-        newWheelchair.Wheels = this.wheels[index];
-        this.newWheelchair = JSON.stringify(newWheelchair);
-        this.$.wheels.header = "Wielen : <u style='color:green'>" + newWheelchair.Wheels.Description;
-      }
-      tiresCollapse(event) {
-        var newWheelchair = JSON.parse(this.newWheelchair);
-        this.$.tires._toggleOpened(null);
-        var index = event.target.attributes.getNamedItem('selectedTires').value;
-        var itemSelected = this.tires[index].Description;
-        newWheelchair.Tires = this.tires[index];
-        this.newWheelchair = JSON.stringify(newWheelchair);
-        this.$.tires.header = "Banden : <u style='color:green'>" + newWheelchair.Tires.Description;
-      }
-      wheelProtectorsCollapse(event) {
-        var newWheelchair = JSON.parse(this.newWheelchair);
-        this.$.wheelprotectors._toggleOpened(null);
-        var index = event.target.attributes.getNamedItem('selectedWheelProtectors').value;
-        var itemSelected = this.wheelprotectors[index].Description;
-        newWheelchair.WheelProtector = this.wheelprotectors[index];
-        this.newWheelchair = JSON.stringify(newWheelchair);
-        this.$.wheelprotectors.header = "Wielbeschermers : <u style='color:green'>" + newWheelchair.WheelProtector
-          .Description;
-      }
-      connectedCallback() {
-        super.connectedCallback();
-        this.loadResources(this.resolveUrl('../../locales.json'));
+        this.newWheelchair.Hoops = [];
+        this.newWheelchair.Hoops.push(this.hoops[index]);
+        this.notifyPath('newWheelchair.Hoops');
+        this.$.hoops.header = `Hoepels : <u style='color:green'> ${this.newWheelchair.Hoops[0].Description}`;
       }
 
-      onWheelchairColorChanged(hoi) {
+      wheelsCollapse(event) {
+        this.$.wheels._toggleOpened(null);
+        var index = event.target.attributes.getNamedItem('selectedWheels').value;
+        this.newWheelchair.Wheels = [];
+        this.newWheelchair.Wheels.push(this.wheels[index]);
+        this.notifyPath('newWheelchair.Wheels');
+        this.$.wheels.header = `Wielen : <u style='color:green'> ${this.newWheelchair.Wheels[0].Description}`;
+      }
+
+      tiresCollapse(event) {
+        this.$.tires._toggleOpened(null);
+        var index = event.target.attributes.getNamedItem('selectedTires').value;
+        this.newWheelchair.Tires = [];
+        this.newWheelchair.Tires.push(this.tires[index]);
+        this.notifyPath('newWheelchair.Tires');
+        this.$.tires.header = `Banden : <u style='color:green'> ${this.newWheelchair.Tires[0].Description}`;
+      }
+
+      wheelProtectorsCollapse(event) {
+        this.$.wheelprotectors._toggleOpened(null);
+        var index = event.target.attributes.getNamedItem('selectedWheelprotectors').value;
+        this.newWheelchair.Wheelprotectors = [];
+        this.newWheelchair.Wheelprotectors.push(this.wheelprotectors[index]);
+        this.notifyPath('newWheelchair.Wheelprotectors');
+        this.$.wheelprotectors.header =
+          `Wielbeschermers : <u style='color:green'> ${this.newWheelchair.Wheelprotectors[0].Description}`;
+      }
+
+      onWheelchairColorChanged(colorCode) {
         if (this.ralcolors) {
           var color = this.ralcolors.filter(function (color) {
-            return color.HexColorCode == hoi;
+            return color.HexColorCode == colorCode;
           });
-          var newWheelchair = JSON.parse(this.newWheelchair);
-          newWheelchair.Color = color[0];
-          console.log(newWheelchair.Color);
-          this.newWheelchair = JSON.stringify(newWheelchair);
+          this.newWheelchair.Color = color[0];
+          this.notifyPath('newWheelchair.Color');
           this.$.wheelchaircolor._toggleOpened(null);
           //header dot changes to selected color
-          this.$.wheelchaircolor.header = "Kleur : RAL" + newWheelchair.Color.ColorCode +
-            "<div style='background-color: " + newWheelchair.Color.HexColorCode +
-            "; width:25px; height:25px; border-radius: 50%; display:inline; float:right; margin-right:20px;'>";
+          this.$.wheelchaircolor.header =
+            `Kleur : RAL ${this.newWheelchair.Color.ColorCode}
+            <div style='background-color: ${this.newWheelchair.Color.HexColorCode}; width:25px; height:25px; border-radius: 50%; display:inline; float:right; margin-right:20px;'> </div>`;
         }
       }
+
+      onSaveResponse(data, request) {
+        this.successToast = this.localize('save_wheelchair_success');
+        this.newWheelchair = request.response;
+      }
+
+      handleGetResponse(data, request) {
+        this.newWheelchair = request.response;
+        this.wheelchairColor = this.newWheelchair.Color.HexColorCode;
+        if (this.newWheelchair.Articles.length == 1) {
+          this.$.articles.header = "Artikelen : <u style='color:green'> 1 artikel geselecteerd</u>";
+        } else {
+          this.$.articles.header =
+            `Artikelen : <u style='color:green'> ${this.newWheelchair.Articles.length} artikelen geselecteerd</u>`;
+        }
+        this.$.frontwheels.header =
+          `Voorwielen : <u style='color:green'> ${this.newWheelchair.Frontwheels[0].Frontwheel.Description}`;
+        this.$.hoops.header = `Hoepels : <u style='color:green'> ${this.newWheelchair.Hoops[0].Hoop.Description}`;
+        this.$.wheels.header = `Wielen : <u style='color:green'> ${this.newWheelchair.Wheels[0].Wheel.Description}`;
+        this.$.tires.header = `Banden : <u style='color:green'> ${this.newWheelchair.Tires[0].Tire.Description}`;
+        this.$.wheelprotectors.header =
+          `Wielbeschermers : <u style='color:green'> ${this.newWheelchair.Wheelprotectors[0].WheelProtector.Description}`;
+      }
+
 
       userParams(userdata) {
         if (userdata == null || userdata == "") {
@@ -489,8 +552,248 @@
           Username: user.username,
           Token: user.accesstoken
         };
-        console.log("request body is ", requestBody);
         return requestBody;
+      }
+
+      addArticleNote(event) {
+        var that = this;
+        this.addition = {};
+        var product = JSON.parse(event.target.getAttribute('product'));
+        var containsArticle = false;
+        this.newWheelchair.Articles.forEach(function (article) {
+          if (article.ArticleId == product.ArticleId) {
+            containsArticle = true;
+            if (article.Addition) {
+              that.addition = article.Addition;
+            }
+          }
+        });
+
+        if (containsArticle) {
+          product.Type = "Article";
+          this.selectedArticle = product;
+          this.$$('#addNotesDialog').opened = true;
+        } else {
+          this.errorToast = this.localize('add_product_before_note');
+        }
+      }
+
+      addWheelprotectorNote(event) {
+        var that = this;
+        this.addition = {};
+        var product = JSON.parse(event.target.getAttribute('product'));
+        var containsArticle = false;
+        this.newWheelchair.Wheelprotectors.forEach(function (protector) {
+          if (protector.WheelprotectorId == product.WheelprotectorId) {
+            containsArticle = true;
+            if (protector.Addition) {
+              that.addition = protector.Addition;
+            }
+          }
+        });
+
+        if (containsArticle) {
+          product.Type = "Wheelprotector";
+          this.selectedArticle = product;
+          this.$$('#addNotesDialog').opened = true;
+        } else {
+          this.errorToast = this.localize('add_product_before_note');
+        }
+      }
+
+      addFrontwheelNote(event) {
+        var that = this;
+        this.addition = {};
+        var product = JSON.parse(event.target.getAttribute('product'));
+        var containsArticle = false;
+        this.newWheelchair.Frontwheels.forEach(function (frontwheel) {
+          if (frontwheel.FrontWheelId == product.FrontWheelId) {
+            containsArticle = true;
+            if (frontwheel.Addition) {
+              that.addition = frontwheel.Addition;
+            }
+          }
+        });
+
+        if (containsArticle) {
+          product.Type = "Frontwheel";
+          this.selectedArticle = product;
+          this.$$('#addNotesDialog').opened = true;
+        } else {
+          this.errorToast = this.localize('add_product_before_note');
+        }
+      }
+
+      addHoopNote(event) {
+        var that = this;
+        this.addition = {};
+        var product = JSON.parse(event.target.getAttribute('product'));
+        var containsArticle = false;
+        this.newWheelchair.Hoops.forEach(function (hoop) {
+          if (hoop.HoopId == product.HoopId) {
+            containsArticle = true;
+            if (hoop.Addition) {
+              that.addition = hoop.Addition;
+            }
+          }
+        });
+
+        if (containsArticle) {
+          product.Type = "Hoop";
+          this.selectedArticle = product;
+          this.$$('#addNotesDialog').opened = true;
+        } else {
+          this.errorToast = this.localize('add_product_before_note');
+        }
+      }
+
+      addWheelNote(event) {
+        var that = this;
+        this.addition = {};
+        var product = JSON.parse(event.target.getAttribute('product'));
+        var containsArticle = false;
+        this.newWheelchair.Wheels.forEach(function (wheel) {
+          if (wheel.WheelId == product.WheelId) {
+            containsArticle = true;
+            if (wheel.Addition) {
+              that.addition = wheel.Addition;
+            }
+          }
+        });
+
+        if (containsArticle) {
+          product.Type = "Wheel";
+          this.selectedArticle = product;
+          this.$$('#addNotesDialog').opened = true;
+        } else {
+          this.errorToast = this.localize('add_product_before_note');
+        }
+      }
+
+      addTireNote(event) {
+        var that = this;
+        this.addition = {};
+        var product = JSON.parse(event.target.getAttribute('product'));
+        var containsArticle = false;
+        this.newWheelchair.Tires.forEach(function (tire) {
+          if (tire.TireId == product.TireId) {
+            containsArticle = true;
+            if (tire.Addition) {
+              that.addition = tire.Addition;
+            }
+          }
+        });
+
+        if (containsArticle) {
+          product.Type = "Tire";
+          this.selectedArticle = product;
+          this.$$('#addNotesDialog').opened = true;
+        } else {
+          this.errorToast = this.localize('add_product_before_note');
+        }
+      }
+
+      _saveArticleNote() {
+        var that = this;
+        this.newWheelchair.Articles.forEach(function (article) {
+          if (article.ArticleId == that.selectedArticle.ArticleId) {
+            article.Addition = that.addition;
+          }
+        });
+      }
+
+      _saveWheelprotectorNote() {
+        var that = this;
+        this.newWheelchair.Wheelprotectors.forEach(function (wheelprotector) {
+          if (wheelprotector.WheelprotectorId == that.selectedArticle.WheelprotectorId) {
+            wheelprotector.Addition = that.addition;
+          }
+        });
+      }
+
+
+      _saveFrontwheelNote() {
+        var that = this;
+        this.newWheelchair.Frontwheels.forEach(function (frontwheel) {
+          if (frontwheel.FrontWheelId == that.selectedArticle.FrontWheelId) {
+            frontwheel.Addition = that.addition;
+          }
+        });
+      }
+
+      _saveHoopNote() {
+        var that = this;
+        this.newWheelchair.Hoops.forEach(function (hoop) {
+          if (hoop.HoopId == that.selectedArticle.HoopId) {
+            hoop.Addition = that.addition;
+          }
+        });
+      }
+
+      _saveWheelNote() {
+        var that = this;
+        this.newWheelchair.Wheels.forEach(function (wheel) {
+          if (wheel.WheelId == that.selectedArticle.WheelId) {
+            wheel.Addition = that.addition;
+          }
+        });
+      }
+
+      _saveTireNote() {
+        var that = this;
+        this.newWheelchair.Tires.forEach(function (tire) {
+          if (tire.TireId == that.selectedArticle.TireId) {
+            tire.Addition = that.addition;
+          }
+        });
+      }
+
+      _onPageChanged() {
+        if (this.page == "wheelchair-config") {
+          if (this.userdata != "" && this.userdata != undefined) {
+            this.$.getArticles.generateRequest();
+          }
+
+          if (this.wheelchairId != 0 && this.wheelchairId != null && this.wheelchairId != undefined) {
+            // geen nieuwe wheelchair
+            this.$$('#getwheelchair').generateRequest();
+          }
+        }
+      }
+
+      _onLoadingChanged(newValue) {
+        if (newValue) {
+          this.$$('#loadingDialog').opened = true;
+        } else {
+          this.$$('#loadingDialog').opened = false;
+        }
+      }
+
+      _convertToBackendObjects() {
+        this.articles.forEach(function (article) {
+          article.ArticleId = article.Id;
+          delete article["Id"];
+        });
+        this.wheelprotectors.forEach(function (wheelprotector) {
+          wheelprotector.WheelprotectorId = wheelprotector.Id;
+          delete wheelprotector["Id"];
+        });
+        this.tires.forEach(function (tire) {
+          tire.TireId = tire.Id;
+          delete tire["Id"];
+        });
+        this.frontwheels.forEach(function (frontwheel) {
+          frontwheel.FrontWheelId = frontwheel.Id;
+          delete frontwheel["Id"];
+        });
+        this.hoops.forEach(function (hoop) {
+          hoop.HoopId = hoop.Id;
+          delete hoop["Id"];
+        });
+        this.wheels.forEach(function (wheel) {
+          wheel.WheelId = wheel.Id;
+          delete wheel["Id"];
+        });
       }
     }
     window.customElements.define(WheelchairConfigPage.is, WheelchairConfigPage);
