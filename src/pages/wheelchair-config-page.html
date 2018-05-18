@@ -534,11 +534,13 @@
 
       onSaveResponse(data, request) {
         this.succesToast = this.localize('save_wheelchair_success');
-        this.newWheelchair = request.response;
+        this.handleGetResponse(data, request);
       }
 
       handleGetResponse(data, request) {
         this.newWheelchair = request.response;
+        this.newWheelchair.OldId = this.newWheelchair.Id;
+        delete this.newWheelchair["Id"];
         this.newWheelchair.Articles.forEach(function (article) {
           article.Id = 0;
         });
@@ -807,7 +809,8 @@
             Wheels: [],
             Tires: [],
             Wheelprotectors: [],
-            Color: {}
+            Color: {},
+            OldId: 0
           };
           this.customerId = 0;
           this.wheelchairId = 0;
