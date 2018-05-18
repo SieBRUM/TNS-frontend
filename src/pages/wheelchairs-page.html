@@ -56,6 +56,7 @@
     <brum-global-variable key="loggedin" value="{{loggedIn}}"></brum-global-variable>
     <brum-global-variable key="language" value="{{language}}"></brum-global-variable>
     <brum-global-variable key="page" value="{{page}}"></brum-global-variable>
+    <brum-global-variable key="wheelchairid" value="{{wheelchairId}}"></brum-global-variable>
 
     <app-localstorage-document key="userdata" data="{{userdata}}"></app-localstorage-document>
 
@@ -65,7 +66,6 @@
     <div class="card card-table">
       <h1>
         {{localize('wheelchairs')}}
-        <paper-icon-button icon="icons:accessible" class="pull-right" title$="{{localize('add_wheelchair_title')}}"></paper-icon-button>
       </h1>
       <template is="dom-if" if="[[isLoading]]">
         <div class="center">
@@ -97,7 +97,7 @@
           </paper-datatable-api-column>
           <paper-datatable-api-column header="{{localize('edit')}}" property="Id">
             <template>
-              <paper-icon-button icon="editor:mode-edit" user-id$="[[value]]" title$="{{localize('edit')}}"></paper-icon-button>
+              <paper-icon-button icon="editor:mode-edit" wheelchair-id$="[[value]]" title$="{{localize('edit')}}" on-tap="onEditWheelchair"></paper-icon-button>
             </template>
           </paper-datatable-api-column>
         </paper-datatable-api>
@@ -181,6 +181,12 @@
         } else {
           this.errorToast = this.localize('unknown_error', 'error', data.request.response);
         }
+      }
+
+      onEditWheelchair(event) {
+        this.wheelchairId = event.target.getAttribute('wheelchair-id');
+        window.history.replaceState({}, null, '#/wheelchair-config');
+        window.dispatchEvent(new CustomEvent('location-changed'));
       }
 
       _hasLanguageChanged() {
