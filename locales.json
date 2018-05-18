@@ -82,8 +82,10 @@
         "wheels": "Wheels",
         "tires": "Tires",
         "wheel_protectors": "Wheel protectors",
-        "color": "Color"
-
+        "color": "Color",
+        "wheelchair_add_no_user": "Did not receive customer details!",
+        "article": "Article",
+        "selected": "selected"
     },
     "nl": {
         "app_title": "TNS Web applicatie",
@@ -168,6 +170,9 @@
         "wheels": "Wielen",
         "tires": "Banden",
         "wheel_protectors": "Wiel beschermers",
-        "color": "Kleur"
+        "color": "Kleur",
+        "wheelchair_add_no_user": "Geen klant meegegeven!",
+        "article": "Artiekel",
+        "selected": "geselecteerd"
     }
 }

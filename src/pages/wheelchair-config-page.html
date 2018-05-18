@@ -109,6 +109,7 @@
     <brum-global-variable key="language" value="{{language}}"></brum-global-variable>
     <brum-global-variable key="page" value="{{page}}"></brum-global-variable>
     <brum-global-variable key="wheelchairid" value="{{wheelchairId}}"></brum-global-variable>
+    <brum-global-variable key="customerid" value="{{customerId}}"></brum-global-variable>
 
     <app-localstorage-document key="userdata" data="{{userdata}}"></app-localstorage-document>
 
@@ -168,14 +169,14 @@
         <paper-collapse-item id="articles" class="styled" header="{{localize('articles')}}">
           <br>
           <template is="dom-repeat" id="articleList" items="{{articles}}">
-            <paper-checkbox on-tap="toggleSelection" checked="{{isArticleChecked(item, newWheelchair.Articles)}}">[[item.Description]]
+            <paper-checkbox on-tap="toggleSelection" selectedArticle$="[[index]]" checked="{{isArticleChecked(item, newWheelchair.Articles)}}">[[item.Description]]
               <b>€[[item.Price]]</b>
             </paper-checkbox>
             <paper-icon-button icon="editor:mode-edit" product$="[[item]]" on-tap="addArticleNote"></paper-icon-button>
             <br/>
           </template>
           <!-- gets all selected checkboxes and put it in a list -->
-          <array-selector id="arraySelector" items="{{articles}}" selected="{{newWheelchair.Articles}}" multi toggle></array-selector>
+          <!-- <array-selector id="arraySelector" items="{{articles}}" selected="{{newWheelchair.Articles}}" multi toggle></array-selector> -->
         </paper-collapse-item>
 
         <paper-collapse-item id="frontwheels" header="{{localize('frontwheels')}}">
@@ -443,14 +444,26 @@
       }
 
       toggleSelection(event) {
-        let item = this.$.articleList.itemForElement(event.target);
-        this.$.arraySelector.select(item);
-        this.notifyPath('newWheelchair.Articles');
+        var index = event.target.attributes.getNamedItem('selectedArticle').value
+        console.log("index:", index);
+        if (this.isArticleChecked(this.articles[index], this.newWheelchair.Articles)) {
+          console.log("Exists, removing...");
+          for (var i = this.newWheelchair.Articles.length - 1; i >= 0; --i) {
+            if (this.newWheelchair.Articles[i].ArticleId == this.articles[index].ArticleId) {
+              console.log("Found match!", this.newWheelchair.Articles[i], this.articles[index]);
+              this.newWheelchair.Articles.splice(i, 1);
+            }
+          }
+        } else {
+          console.log("Does not exist, adding...");
+          this.newWheelchair.Articles.push(this.articles[index]);
+        }
         if (this.newWheelchair.Articles.length == 1) {
-          this.$.articles.header = "Artikelen : <u style='color:green'> 1 artikel geselecteerd</u>";
+          this.$.articles.header =
+            `${this.localize('articles')} : <u style='color:green'> 1 ${this.localize('article')} ${this.localize('selected')}</u>`;
         } else {
           this.$.articles.header =
-            `Artikelen : <u style='color:green'> ${this.newWheelchair.Articles.length} artikelen geselecteerd</u>`;
+            `${this.localize('articles')} : <u style='color:green'> ${this.newWheelchair.Articles.length} ${this.localize('articles')} ${this.localize('selected')}</u>`;
         }
       }
 
@@ -461,7 +474,7 @@
         this.newWheelchair.Frontwheels.push(this.frontwheels[index]);
         this.notifyPath('newWheelchair.Frontwheels');
         this.$.frontwheels.header =
-          `Voorwielen : <u style='color:green'> ${this.newWheelchair.Frontwheels[0].Description}`;
+          `${this.localize('frontwheels')} : <u style='color:green'> ${this.newWheelchair.Frontwheels[0].Description}`;
       }
 
       hoopsCollapse(event) {
@@ -470,7 +483,8 @@
         this.newWheelchair.Hoops = [];
         this.newWheelchair.Hoops.push(this.hoops[index]);
         this.notifyPath('newWheelchair.Hoops');
-        this.$.hoops.header = `Hoepels : <u style='color:green'> ${this.newWheelchair.Hoops[0].Description}`;
+        this.$.hoops.header =
+          `${this.localize('hoops')} : <u style='color:green'> ${this.newWheelchair.Hoops[0].Description}`;
       }
 
       wheelsCollapse(event) {
@@ -479,7 +493,8 @@
         this.newWheelchair.Wheels = [];
         this.newWheelchair.Wheels.push(this.wheels[index]);
         this.notifyPath('newWheelchair.Wheels');
-        this.$.wheels.header = `Wielen : <u style='color:green'> ${this.newWheelchair.Wheels[0].Description}`;
+        this.$.wheels.header =
+          `${this.localize('wheels')} : <u style='color:green'> ${this.newWheelchair.Wheels[0].Description}`;
       }
 
       tiresCollapse(event) {
@@ -488,7 +503,8 @@
         this.newWheelchair.Tires = [];
         this.newWheelchair.Tires.push(this.tires[index]);
         this.notifyPath('newWheelchair.Tires');
-        this.$.tires.header = `Banden : <u style='color:green'> ${this.newWheelchair.Tires[0].Description}`;
+        this.$.tires.header =
+          `${this.localize('tires')} : <u style='color:green'> ${this.newWheelchair.Tires[0].Description}`;
       }
 
       wheelProtectorsCollapse(event) {
@@ -498,7 +514,7 @@
         this.newWheelchair.Wheelprotectors.push(this.wheelprotectors[index]);
         this.notifyPath('newWheelchair.Wheelprotectors');
         this.$.wheelprotectors.header =
-          `Wielbeschermers : <u style='color:green'> ${this.newWheelchair.Wheelprotectors[0].Description}`;
+          `${this.localize('wheel_protectors')} : <u style='color:green'> ${this.newWheelchair.Wheelprotectors[0].Description}`;
       }
 
       onWheelchairColorChanged(colorCode) {
@@ -511,32 +527,56 @@
           this.$.wheelchaircolor._toggleOpened(null);
           //header dot changes to selected color
           this.$.wheelchaircolor.header =
-            `Kleur : RAL ${this.newWheelchair.Color.ColorCode}
+            `${this.localize('color')} : RAL ${this.newWheelchair.Color.ColorCode}
             <div style='background-color: ${this.newWheelchair.Color.HexColorCode}; width:25px; height:25px; border-radius: 50%; display:inline; float:right; margin-right:20px;'> </div>`;
         }
       }
 
       onSaveResponse(data, request) {
-        this.successToast = this.localize('save_wheelchair_success');
+        this.succesToast = this.localize('save_wheelchair_success');
         this.newWheelchair = request.response;
       }
 
       handleGetResponse(data, request) {
         this.newWheelchair = request.response;
+        this.newWheelchair.Articles.forEach(function (article) {
+          article.Id = 0;
+        });
+        this.newWheelchair.Frontwheels.forEach(function (fwheel) {
+          fwheel.Id = 0;
+        });
+        this.newWheelchair.Hoops.forEach(function (hoop) {
+          hoop.Id = 0;
+        });
+        this.newWheelchair.Tires.forEach(function (tire) {
+          tire.Id = 0;
+        });
+        this.newWheelchair.Wheelprotectors.forEach(function (wp) {
+          wp.Id = 0;
+        });
+        this.newWheelchair.Wheels.forEach(function (wheel) {
+          wheel.Id = 0;
+        });
         this.wheelchairColor = this.newWheelchair.Color.HexColorCode;
         if (this.newWheelchair.Articles.length == 1) {
-          this.$.articles.header = "Artikelen : <u style='color:green'> 1 artikel geselecteerd</u>";
+          this.$.articles.header =
+            `${this.localize('articles')} : <u style='color:green'> 1 ${this.localize('article')} ${this.localize('selected')}</u>`;
         } else {
           this.$.articles.header =
-            `Artikelen : <u style='color:green'> ${this.newWheelchair.Articles.length} artikelen geselecteerd</u>`;
+            `${this.localize('articles')} : <u style='color:green'> ${this.newWheelchair.Articles.length} ${this.localize('articles')} ${this.localize('selected')}</u>`;
         }
         this.$.frontwheels.header =
-          `Voorwielen : <u style='color:green'> ${this.newWheelchair.Frontwheels[0].Frontwheel.Description}`;
-        this.$.hoops.header = `Hoepels : <u style='color:green'> ${this.newWheelchair.Hoops[0].Hoop.Description}`;
-        this.$.wheels.header = `Wielen : <u style='color:green'> ${this.newWheelchair.Wheels[0].Wheel.Description}`;
-        this.$.tires.header = `Banden : <u style='color:green'> ${this.newWheelchair.Tires[0].Tire.Description}`;
-        this.$.wheelprotectors.header =
-          `Wielbeschermers : <u style='color:green'> ${this.newWheelchair.Wheelprotectors[0].WheelProtector.Description}`;
+          `${this.localize('frontwheels')} : <u style='color:green'> ${this.newWheelchair.Frontwheels[0].Frontwheel.Description}`;
+        this.$.hoops.header =
+          `${this.localize('hoops')} : <u style='color:green'> ${this.newWheelchair.Hoops[0].Hoop.Description}`;
+        this.$.wheels.header =
+          `${this.localize('wheels')} : <u style='color:green'> ${this.newWheelchair.Wheels[0].Wheel.Description}`;
+        this.$.tires.header =
+          `${this.localize('tires')} : <u style='color:green'> ${this.newWheelchair.Tires[0].Tire.Description}`;
+        if (this.newWheelchair.Wheelprotectors) {
+          this.$.wheelprotectors.header =
+            `${this.localize('wheel_protectors')} : <u style='color:green'> ${this.newWheelchair.Wheelprotectors[0].WheelProtector.Description}`;
+        }
       }
 
 
@@ -752,12 +792,32 @@
         if (this.page == "wheelchair-config") {
           if (this.userdata != "" && this.userdata != undefined) {
             this.$.getArticles.generateRequest();
+            if (this.wheelchairId != 0 && this.wheelchairId != null && this.wheelchairId != undefined) {
+              this.$$('#getwheelchair').generateRequest();
+            } else if (this.customerId != 0 && this.customerId != null && this.customerId != undefined) {
+              this.newWheelchair.CustomerId = this.customerId;
+            }
           }
-
-          if (this.wheelchairId != 0 && this.wheelchairId != null && this.wheelchairId != undefined) {
-            // geen nieuwe wheelchair
-            this.$$('#getwheelchair').generateRequest();
-          }
+        } else {
+          this.newWheelchair = {
+            Addition: [],
+            Articles: [],
+            Frontwheels: [],
+            Hoops: [],
+            Wheels: [],
+            Tires: [],
+            Wheelprotectors: [],
+            Color: {}
+          };
+          this.customerId = 0;
+          this.wheelchairId = 0;
+          this.$.frontwheels.header = `${this.localize('frontwheels')}`;
+          this.$.hoops.header = `${this.localize('hoops')}`;
+          this.$.wheels.header = `${this.localize('wheels')}`;
+          this.$.tires.header = `${this.localize('tires')}`;
+          this.$.wheelprotectors.header = `${this.localize('wheel_protectors')}`;
+          this.$.wheelchaircolor.header = `${this.localize('color')}`;
+          this.$.articles.header = `${this.localize('articles')}`;
         }
       }
 

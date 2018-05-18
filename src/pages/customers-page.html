@@ -60,6 +60,7 @@
     <brum-global-variable key="loggedin" value="{{loggedIn}}"></brum-global-variable>
     <brum-global-variable key="language" value="{{language}}"></brum-global-variable>
     <brum-global-variable key="page" value="{{page}}"></brum-global-variable>
+    <brum-global-variable key="customerid" value="{{customerId}}"></brum-global-variable>
 
     <app-localstorage-document key="userdata" data="{{userdata}}"></app-localstorage-document>
 
@@ -298,6 +299,12 @@
 
     onCancelAdd() {
       this.$$('#customerDialog').opened = false;
+    }
+
+    onAddWheelchair(event) {
+      this.customerId = event.target.getAttribute('customer-id');
+      window.history.replaceState({}, null, '#/wheelchair-config');
+      window.dispatchEvent(new CustomEvent('location-changed'));
     }
 
     _hasLanguageChanged() {
