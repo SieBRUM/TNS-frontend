@@ -60,7 +60,6 @@
     <brum-global-variable key="loggedin" value="{{loggedIn}}"></brum-global-variable>
     <brum-global-variable key="language" value="{{language}}"></brum-global-variable>
     <brum-global-variable key="page" value="{{page}}"></brum-global-variable>
-    <brum-global-variable key="customerid" value="{{customerId}}"></brum-global-variable>
 
     <app-localstorage-document key="userdata" data="{{userdata}}"></app-localstorage-document>
 
@@ -68,6 +67,8 @@
       headers="[[userParams(userdata)]]" method="GET" with-credentials content-type="application/json" on-error="handleError"></iron-ajax>
     <iron-ajax id="addCustomer" url="/backend/api/customers" handle-as="json" on-response="onAddResponse" on-error="onAddError"
       loading="{{isLoading}}" headers="[[userParams(userdata)]]" method="POST" with-credentials content-type="application/json"></iron-ajax>
+
+
 
     <div class="card card-table">
       <h1>
@@ -299,12 +300,6 @@
 
     onCancelAdd() {
       this.$$('#customerDialog').opened = false;
-    }
-
-    onAddWheelchair(event) {
-      this.customerId = event.target.getAttribute('customer-id');
-      window.history.replaceState({}, null, '#/wheelchair-config');
-      window.dispatchEvent(new CustomEvent('location-changed'));
     }
 
     _hasLanguageChanged() {
