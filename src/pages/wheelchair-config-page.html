@@ -17,8 +17,6 @@
 <link rel="import" href="../../bower_components/paper-radio-button/paper-radio-button.html">
 <link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="../../bower_components/paper-spinner/paper-spinner-lite.html">
-<script src="../../node_modules/three/build/three.min.js"></script>
-<script src="../../node_modules/three/build/three.js"></script>
 
 <dom-module id="wheelchair-config-page">
   <template>
@@ -116,7 +114,6 @@
     <app-localstorage-document key="userdata" data="{{userdata}}"></app-localstorage-document>
 
     <iron-ajax id="getArticles" url="/backend/api/wheelchair/products" handle-as="json" on-error="handleError" on-response="handleResponse"
-
       headers="[[userParams(userdata)]]" loading="{{isLoading}}">
     </iron-ajax>
     <iron-ajax id="getwheelchair" url="/backend/api/wheelchair/{{wheelchairId}}" handle-as="json" on-error="handleGetError" on-response="handleGetResponse"
@@ -152,10 +149,8 @@
     </vaadin-dialog>
 
     <div class="card">
-      <!-- left side -->
       <div>
-        <!-- webGL -->
-        <div id="renderCanvas" style="background-color: white"></div>
+        <img src=".\images\A-I_wheelchair.png" class="wheelchairDimImg">
         <div style="column-count: 3; margin-bottom: 20px;">
           <paper-input id="SeatWidth" label="{{localize('seat_width')}}" value="{{newWheelchair.SeatWidth}}" auto-validate pattern="[0-9]*"
             type="string" maxlength="4"></paper-input>
@@ -180,7 +175,6 @@
         <paper-button class="confirm" style="float:right" on-tap="onSave">{{localize('save')}}</paper-button>
         <paper-button class="preview" on-tap="showWheelchairPreviewDialog" style="float:right">{{localize('preview')}}</paper-button>
       </div>
-      <!-- right side -->
       <div class="collapsebox">
         <paper-collapse-item id="articles" class="styled" header="{{localize('articles')}}">
           <br>
@@ -320,7 +314,6 @@
           },
           userdata: {
             type: String
-
           },
           page: {
             type: String,
@@ -331,6 +324,7 @@
           }
         };
       }
+
       connectedCallback() {
         super.connectedCallback();
         this.loadResources(this.resolveUrl('../../locales.json'));
@@ -344,244 +338,6 @@
           }
         });
         return shouldChecked;
-        
-      showWheelchairPreviewDialog() {
-        //gets div element
-        var div = this.$$('#renderCanvas');
-
-        //generates canvas in code, because Polymer doesn't support it at this point
-        var mycanvas = document.createElement("canvas");
-        mycanvas.id = "mycanvas";
-        // div.appendChild(mycanvas);
-
-        //renderer
-        var renderer = new THREE.WebGLRenderer({
-          alpha: true
-        });
-        renderer.setSize(600, 334);
-
-        //add canvas to div element
-        div.appendChild(renderer.domElement);
-
-        //camera
-        var camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 500);
-        camera.position.set(0,
-          0, 100);
-        camera.lookAt(new THREE.Vector3(0, 0, 0));
-
-        var material = new THREE.LineBasicMaterial({
-          color: 0x000000,
-        });
-
-        var scene = new THREE.Scene();
-
-        //initializing all geometries
-        var backrestfrontview = new THREE.Geometry();
-        var backrestfrontview2 = new THREE.Geometry();
-        var wheelaxispipe = new THREE.Geometry();
-        var seatheightfrontview = new THREE.Geometry();
-        var footplate = new THREE.Geometry();
-        var seatbar = new THREE.Geometry();
-
-        var lowerleg1 = new THREE.Geometry();
-        var lowerleg2 = new THREE.Geometry();
-        var lowerleg3 = new THREE.Geometry();
-        var lowerleg4 = new THREE.Geometry();
-        var wheelpiece = new THREE.Geometry();
-        var wheelpieceupper = new THREE.Geometry();
-        var seatdepth1 = new THREE.Geometry();
-        var seatdepth2 = new THREE.Geometry();
-        var cushion = new THREE.Geometry();
-        var seatheight1 = new THREE.Geometry();
-        var seatheight2 = new THREE.Geometry();
-        var seatheight3 = new THREE.Geometry();
-
-        //frontview
-        backrestfrontview.vertices.push(new THREE.Vector3(-70, 15, 0));
-        backrestfrontview.vertices.push(new THREE.Vector3(-70, -22, 0));
-        backrestfrontview.vertices.push(new THREE.Vector3(-67, -22, 0));
-        backrestfrontview.vertices.push(new THREE.Vector3(-67, 15, 0));
-        backrestfrontview.vertices.push(new THREE.Vector3(-70, 15, 0));
-
-        backrestfrontview2.vertices.push(new THREE.Vector3(-40, -22, 0));
-        backrestfrontview2.vertices.push(new THREE.Vector3(-40, 15, 0));
-        backrestfrontview2.vertices.push(new THREE.Vector3(-37, 15, 0));
-        backrestfrontview2.vertices.push(new THREE.Vector3(-37, -22, 0));
-        backrestfrontview2.vertices.push(new THREE.Vector3(-40, -22, 0));
-
-        wheelaxispipe.vertices.push(new THREE.Vector3(-40, -17, 0));
-        wheelaxispipe.vertices.push(new THREE.Vector3(-54, -18, 0));
-        wheelaxispipe.vertices.push(new THREE.Vector3(-67, -17, 0));
-        wheelaxispipe.vertices.push(new THREE.Vector3(-67, -19, 0));
-        wheelaxispipe.vertices.push(new THREE.Vector3(-54, -20, 0));
-        wheelaxispipe.vertices.push(new THREE.Vector3(-40, -19, 0));
-        wheelaxispipe.vertices.push(new THREE.Vector3(-40, -17, 0));
-
-        seatheightfrontview.vertices.push(new THREE.Vector3(-67, 10, 0));
-        seatheightfrontview.vertices.push(new THREE.Vector3(-40, 10, 0));
-        seatheightfrontview.vertices.push(new THREE.Vector3(-40, 8, 0));
-        seatheightfrontview.vertices.push(new THREE.Vector3(-67, 8, 0));
-
-        footplate.vertices.push(new THREE.Vector3(-65, -35, 0));
-        footplate.vertices.push(new THREE.Vector3(-43, -35, 0));
-
-        seatbar.vertices.push(new THREE.Vector3(-67, -8, 0));
-        seatbar.vertices.push(new THREE.Vector3(-60, -12, 0));
-        seatbar.vertices.push(new THREE.Vector3(-48, -12, 0));
-        seatbar.vertices.push(new THREE.Vector3(-40, -8, 0));
-        seatbar.vertices.push(new THREE.Vector3(-40, -6, 0));
-        seatbar.vertices.push(new THREE.Vector3(-48, -10, 0));
-        seatbar.vertices.push(new THREE.Vector3(-60, -10, 0));
-        seatbar.vertices.push(new THREE.Vector3(-67, -8, 0));
-
-
-        //sideview
-        //lowerLeg framelength                     X   Y   Z
-        lowerleg1.vertices.push(new THREE.Vector3(12, -20, 0));
-        lowerleg1.vertices.push(new THREE.Vector3(10, -30, 0));
-        lowerleg1.vertices.push(new THREE.Vector3(13, -30, 0));
-
-        lowerleg2.vertices.push(new THREE.Vector3(15, -20, 0));
-        lowerleg2.vertices.push(new THREE.Vector3(13, -30, 0));
-
-        //connection to seatdepth (curve)
-        lowerleg3.vertices.push(new THREE.Vector3(12, -20, 0));
-        lowerleg3.vertices.push(new THREE.Vector3(15, -12, 0));
-        lowerleg3.vertices.push(new THREE.Vector3(18, -8, 0));
-        lowerleg3.vertices.push(new THREE.Vector3(25, -7, 0));
-
-        lowerleg4.vertices.push(new THREE.Vector3(15, -20, 0));
-        lowerleg4.vertices.push(new THREE.Vector3(16, -17, 0));
-        lowerleg4.vertices.push(new THREE.Vector3(19, -12, 0));
-        lowerleg4.vertices.push(new THREE.Vector3(21, -11, 0));
-        lowerleg4.vertices.push(new THREE.Vector3(25, -10, 0));
-
-        wheelpiece.vertices.push(new THREE.Vector3(21, -35, 0));
-        wheelpiece.vertices.push(new THREE.Vector3(17, -28, 0));
-        wheelpiece.vertices.push(new THREE.Vector3(20, -28, 0));
-        wheelpiece.vertices.push(new THREE.Vector3(21, -35, 0));
-
-        wheelpieceupper.vertices.push(new THREE.Vector3(20, -28, 0));
-        wheelpieceupper.vertices.push(new THREE.Vector3(20, -21, 0));
-        wheelpieceupper.vertices.push(new THREE.Vector3(17, -21, 0));
-        wheelpieceupper.vertices.push(new THREE.Vector3(17, -28, 0));
-        wheelpieceupper.vertices.push(new THREE.Vector3(17, -22, 0));
-        wheelpieceupper.vertices.push(new THREE.Vector3(13, -20, 0));
-        wheelpieceupper.vertices.push(new THREE.Vector3(12, -24, 0));
-        wheelpieceupper.vertices.push(new THREE.Vector3(17, -26, 0));
-
-        //seatdepth
-        seatdepth1.vertices.push(new THREE.Vector3(25, -10, 0));
-        seatdepth1.vertices.push(new THREE.Vector3(63, -10, 0));
-
-        seatdepth2.vertices.push(new THREE.Vector3(25, -7, 0));
-        seatdepth2.vertices.push(new THREE.Vector3(60, -7, 0));
-
-        cushion.vertices.push(new THREE.Vector3(60, -3, 0));
-        cushion.vertices.push(new THREE.Vector3(25, -3, 0));
-        cushion.vertices.push(new THREE.Vector3(24, -4, 0));
-        cushion.vertices.push(new THREE.Vector3(23.3, -5.5, 0));
-        cushion.vertices.push(new THREE.Vector3(24, -6.8, 0));
-        cushion.vertices.push(new THREE.Vector3(25, -7, 0));
-
-        //backseatheight
-        seatheight1.vertices.push(new THREE.Vector3(60, -10, 0));
-        seatheight1.vertices.push(new THREE.Vector3(60, 15, 0));
-
-        seatheight2.vertices.push(new THREE.Vector3(63, -10, 0));
-        seatheight2.vertices.push(new THREE.Vector3(63, 15, 0));
-        seatheight2.vertices.push(new THREE.Vector3(63, 5, 0));
-        seatheight2.vertices.push(new THREE.Vector3(70, 5, 0));
-        seatheight2.vertices.push(new THREE.Vector3(71, 6, 0));
-        seatheight2.vertices.push(new THREE.Vector3(70, 7, 0));
-        seatheight2.vertices.push(new THREE.Vector3(63, 7, 0));
-
-        seatheight3.vertices.push(new THREE.Vector3(60, 15, 0));
-        seatheight3.vertices.push(new THREE.Vector3(63, 15, 0));
-
-        //wheels                            X    Y  (Radius) (   angles   )         rotation
-        var wheel1 = new THREE.EllipseCurve(54, -18, 25, 21, 0, 2 * Math.PI, false, 0);
-        var points = wheel1.getPoints(50);
-        var wheelbuffer1 = new THREE.BufferGeometry().setFromPoints(points);
-
-        var wheel2 = new THREE.EllipseCurve(54, -18, 22, 18, 0, 2 * Math.PI, false, 0);
-        var points = wheel2.getPoints(50);
-        var wheelbuffer2 = new THREE.BufferGeometry().setFromPoints(points);
-
-        var wheelaxis = new THREE.EllipseCurve(54, -18, 3, 2.5, 0, 2 * Math.PI, false, 0);
-        var points = wheelaxis.getPoints(50);
-        var wheelaxisbuffer = new THREE.BufferGeometry().setFromPoints(points);
-
-        var frontwheel = new THREE.EllipseCurve(21, -35, 6, 5, 0, 2 * Math.PI, false, 0);
-        var points = frontwheel.getPoints(50);
-        var frontwheelbuffer = new THREE.BufferGeometry().setFromPoints(points);
-
-        // Create the final object to add to the scene
-        var backrestfrontviewline = new THREE.Line(backrestfrontview, material);
-        var backrestfrontviewline2 = new THREE.Line(backrestfrontview2, material);
-        var wheelaxislinefrontview = new THREE.Line(wheelaxispipe, material);
-        var seatheightfrontviewline = new THREE.Line(seatheightfrontview, material);
-        var footlplateline = new THREE.Line(footplate, material);
-        var seatbarline = new THREE.Line(seatbar, material);
-
-        var lowerlegline1 = new THREE.Line(lowerleg1, material);
-        var lowerlegline2 = new THREE.Line(lowerleg2, material);
-        var lowerlegline3 = new THREE.Line(lowerleg3, material);
-        var lowerlegline4 = new THREE.Line(lowerleg4, material);
-
-        var seatdepthline1 = new THREE.Line(seatdepth1, material);
-        var seatdepthline2 = new THREE.Line(seatdepth2, material);
-        var cushionline = new THREE.Line(cushion, material);
-
-        var seatheightline1 = new THREE.Line(seatheight1, material);
-        var seatheightline2 = new THREE.Line(seatheight2, material);
-        var seatheightline3 = new THREE.Line(seatheight3, material);
-
-        var wheelline1 = new THREE.Line(wheelbuffer1, material);
-        var wheelline2 = new THREE.Line(wheelbuffer2, material);
-        var wheelaxisline = new THREE.Line(wheelaxisbuffer, material);
-        var frontwheelline = new THREE.Line(frontwheelbuffer, material);
-        var wheelpieceline = new THREE.Line(wheelpiece, material);
-        var wheelpieceupperline = new THREE.Line(wheelpieceupper, material);
-
-
-        //add everything to the scene
-        scene.add(backrestfrontviewline);
-        scene.add(backrestfrontviewline2);
-        scene.add(wheelaxislinefrontview);
-        scene.add(seatheightfrontviewline);
-        scene.add(footlplateline);
-        scene.add(seatbarline);
-
-        scene.add(lowerlegline1);
-        scene.add(lowerlegline2);
-        scene.add(lowerlegline3);
-        scene.add(lowerlegline4);
-        scene.add(seatdepthline1);
-        scene.add(seatdepthline2);
-        scene.add(cushionline);
-        scene.add(seatheightline1);
-        scene.add(seatheightline2);
-        scene.add(seatheightline3);
-        scene.add(wheelline1);
-        scene.add(wheelline2);
-        scene.add(wheelaxisline);
-        scene.add(frontwheelline);
-        scene.add(wheelpieceline);
-        scene.add(wheelpieceupperline);
-
-        //renders scene to the WebGLRenderer
-        renderer.render(scene, camera);
-
-      }
-      _hasLanguageChanged() {
-        this.hasChanged = false;
-        var that = this;
-        this.isLoading = true;
-        setTimeout(function () {
-          that.isLoading = false;
-          that.hasChanged = true;
-        }, 300);
       }
 
       isFrontwheelChecked(frontwheel, selectedFrontwheels) {
