@@ -127,8 +127,9 @@
         <div class="dialog">
           <h1>{{localize('add_addition')}} ({{selectedArticle.Description}})</h1>
           <paper-textarea label="{{localize('comment')}}" value="{{addition.Comment}}"></paper-textarea>
-          <paper-input label="{{localize('discount')}}" value="{{addition.Discount}}" type="number"></paper-input>
-          <paper-input label="{{localize('amount')}}" value="{{addition.Amount}}" type="number"></paper-input>
+          <paper-input label="{{localize('discount')}}" value="{{addition.Discount}}" auto-validate pattern="[0-9]*" type="string"
+            maxlength="2"></paper-input>
+          <paper-input label="{{localize('amount')}}" value="{{addition.Amount}}" auto-validate pattern="[0-9]*" type="string" maxlength="2"></paper-input>
           <br>
           <paper-button on-tap="onCancel" class="pull-right dismiss">{{localize('cancel')}}</paper-button>
           <paper-button on-tap="onSaveNotes" class="confirm">{{localize('save')}}</paper-button>
@@ -151,15 +152,24 @@
       <div>
         <img src=".\images\A-I_wheelchair.png" class="wheelchairDimImg">
         <div style="column-count: 3; margin-bottom: 20px;">
-          <paper-input id="SeatWidth" label="{{localize('seat_width')}}" value="{{newWheelchair.SeatWidth}}" type="number"></paper-input>
-          <paper-input id="FootplateWidth" label="{{localize('footplate_width')}}" value="{{newWheelchair.FootplateWidth}}" type="number"></paper-input>
-          <paper-input id="SeatDepth" label="{{localize('seat_depth')}}" value="{{newWheelchair.SeatDepth}}" type="number"></paper-input>
-          <paper-input id="FrameLength" label="{{localize('frame_length')}}" value="{{newWheelchair.FrameLength}}" type="number"></paper-input>
-          <paper-input id="BackrestHeight" label="{{localize('backrest_height')}}" value="{{newWheelchair.BackrestHeight}}" type="number"></paper-input>
-          <paper-input id="SeatheightFront" label="{{localize('seat_height_front')}}" value="{{newWheelchair.SeatHeightFront}}" type="number"></paper-input>
-          <paper-input id="SeatheightBack" label="{{localize('seat_height_back')}}" value="{{newWheelchair.SeatHeightBack}}" type="number"></paper-input>
-          <paper-input id="BalancePoint" label="{{localize('balance_point')}}" value="{{newWheelchair.BalancePoint}}" type="number"></paper-input>
-          <paper-input id="LowerLegWidth" label="{{localize('lowerleg_width')}}" value="{{newWheelchair.LowerLegWidth}}" type="number"></paper-input>
+          <paper-input id="SeatWidth" label="{{localize('seat_width')}}" value="{{newWheelchair.SeatWidth}}" auto-validate pattern="[0-9]*"
+            type="string" maxlength="4"></paper-input>
+          <paper-input id="FootplateWidth" label="{{localize('footplate_width')}}" value="{{newWheelchair.FootplateWidth}}" auto-validate
+            pattern="[0-9]*" type="string" maxlength="4"></paper-input>
+          <paper-input id="SeatDepth" label="{{localize('seat_depth')}}" value="{{newWheelchair.SeatDepth}}" auto-validate pattern="[0-9]*"
+            type="string" maxlength="4"></paper-input>
+          <paper-input id="FrameLength" label="{{localize('frame_length')}}" value="{{newWheelchair.FrameLength}}" auto-validate pattern="[0-9]*"
+            type="string" maxlength="4"></paper-input>
+          <paper-input id="BackrestHeight" label="{{localize('backrest_height')}}" value="{{newWheelchair.BackrestHeight}}" auto-validate
+            pattern="[0-9]*" type="string" maxlength="4"></paper-input>
+          <paper-input id="SeatheightFront" label="{{localize('seat_height_front')}}" value="{{newWheelchair.SeatHeightFront}}" auto-validate
+            pattern="[0-9]*" type="string" maxlength="4"></paper-input>
+          <paper-input id="SeatheightBack" label="{{localize('seat_height_back')}}" value="{{newWheelchair.SeatHeightBack}}" auto-validate
+            pattern="[0-9]*" type="string" maxlength="4"></paper-input>
+          <paper-input id="BalancePoint" label="{{localize('balance_point')}}" value="{{newWheelchair.BalancePoint}}" auto-validate
+            pattern="[0-9]*" type="string" maxlength="4"></paper-input>
+          <paper-input id="LowerLegWidth" label="{{localize('lowerleg_width')}}" value="{{newWheelchair.LowerLegWidth}}" auto-validate
+            pattern="[0-9]*" type="string" maxlength="4"></paper-input>
         </div>
         <paper-button class="cancel" style="float:left">{{localize('cancel')}}</paper-button>
         <paper-button class="confirm" style="float:right" on-tap="onSave">{{localize('save')}}</paper-button>
@@ -175,8 +185,6 @@
             <paper-icon-button icon="editor:mode-edit" product$="[[item]]" on-tap="addArticleNote"></paper-icon-button>
             <br/>
           </template>
-          <!-- gets all selected checkboxes and put it in a list -->
-          <!-- <array-selector id="arraySelector" items="{{articles}}" selected="{{newWheelchair.Articles}}" multi toggle></array-selector> -->
         </paper-collapse-item>
 
         <paper-collapse-item id="frontwheels" header="{{localize('frontwheels')}}">
@@ -302,7 +310,6 @@
             type: Object
           },
           wheelchairColor: {
-            value: "#F5FF00",
             observer: 'onWheelchairColorChanged'
           },
           userdata: {
@@ -405,6 +412,17 @@
       }
 
       onSaveNotes() {
+        if (!(/^\d+$/.test(this.addition.Discount)) || parseInt(this.addition.Discount) > 99 ||
+          parseInt(this.addition.Discount) < 0) {
+          this.errorToast = this.localize('discount_number_only');
+          return;
+        }
+        if (!(/^\d+$/.test(this.addition.Amount)) || parseInt(this.addition.Amount) > 99 ||
+          parseInt(this.addition.Amount) < 0) {
+          this.errorToast = this.localize('amount_number_only');
+          return;
+        }
+
         var that = this;
         if (this.selectedArticle.Type == "Article") {
           this._saveArticleNote();
@@ -419,7 +437,7 @@
         } else if (this.selectedArticle.Type == "Wheel") {
           this._saveWheelNote();
         } else {
-          this.newWheelchair.Addition = this.Addition;
+          this.newWheelchair.Addition = this.addition;
         }
         this.$$('#addNotesDialog').opened = false;
       }
@@ -439,23 +457,27 @@
       }
 
       onSave() {
+        if (!this._validateNumbers(this.newWheelchair.SeatWidth) || !this._validateNumbers(this.newWheelchair.FootplateWidth) ||
+          !this._validateNumbers(this.newWheelchair.SeatDepth) || !this._validateNumbers(this.newWheelchair.FrameLength) ||
+          !this._validateNumbers(this.newWheelchair.BackrestHeight) || !this._validateNumbers(this.newWheelchair.SeatHeightFront) ||
+          !this._validateNumbers(this.newWheelchair.SeatHeightBack) || !this._validateNumbers(this.newWheelchair.BalancePoint) ||
+          !this._validateNumbers(this.newWheelchair.LowerLegWidth)) {
+          this.errorToast = this.localize('incorrect_sizes');
+          return;
+        }
         this.$$('#saveWheelchairs').body = JSON.stringify(this.newWheelchair);
         this.$$('#saveWheelchairs').generateRequest();
       }
 
       toggleSelection(event) {
         var index = event.target.attributes.getNamedItem('selectedArticle').value
-        console.log("index:", index);
         if (this.isArticleChecked(this.articles[index], this.newWheelchair.Articles)) {
-          console.log("Exists, removing...");
           for (var i = this.newWheelchair.Articles.length - 1; i >= 0; --i) {
             if (this.newWheelchair.Articles[i].ArticleId == this.articles[index].ArticleId) {
-              console.log("Found match!", this.newWheelchair.Articles[i], this.articles[index]);
               this.newWheelchair.Articles.splice(i, 1);
             }
           }
         } else {
-          console.log("Does not exist, adding...");
           this.newWheelchair.Articles.push(this.articles[index]);
         }
         if (this.newWheelchair.Articles.length == 1) {
@@ -519,9 +541,11 @@
 
       onWheelchairColorChanged(colorCode) {
         if (this.ralcolors) {
+          colorCode = colorCode.toUpperCase();
           var color = this.ralcolors.filter(function (color) {
             return color.HexColorCode == colorCode;
           });
+          console.log(color);
           this.newWheelchair.Color = color[0];
           this.notifyPath('newWheelchair.Color');
           this.$.wheelchaircolor._toggleOpened(null);
@@ -857,6 +881,15 @@
           wheel.WheelId = wheel.Id;
           delete wheel["Id"];
         });
+      }
+
+      _validateNumbers(number) {
+        if (!(/^\d+$/.test(number)) || parseInt(number) > 9999 ||
+          parseInt(number) < 0) {
+          return false;
+        }
+
+        return true;
       }
     }
     window.customElements.define(WheelchairConfigPage.is, WheelchairConfigPage);
