@@ -234,7 +234,7 @@
           </paper-radio-group>
         </paper-collapse-item>
 
-        <paper-collapse-item id="wheelprotectors" header="{{localize('wheel_protectors')}}">
+        <paper-collapse-item id="wheelprotectors" header="{{localize('wheel_protectors')}}" allow-empty-selection>
           <paper-radio-group>
             <template is="dom-repeat" items="[[wheelprotectors]]">
               <paper-radio-button selectedWheelprotectors$="[[index]]" name="{{item.Description}}" on-tap="wheelProtectorsCollapse" checked="{{isWheelprotectorChecked(item, newWheelchair.Wheelprotectors)}}">[[item.Description]]
@@ -379,7 +379,6 @@
         return shouldChecked;
       }
 
-
       isWheelprotectorChecked(wheelprotector, selectedWheelprotector) {
         var shouldChecked = false;
         selectedWheelprotector.forEach(selected => {
@@ -464,6 +463,30 @@
           this.errorToast = this.localize('incorrect_sizes');
           return;
         }
+        if (this.newWheelchair.Articles == null || this.newWheelchair.Articles.length == 0) {
+          this.errorToast = this.localize('no_articles_error');
+          return;
+        }
+        if (this.newWheelchair.Frontwheels == null || this.newWheelchair.Frontwheels.length == 0) {
+          this.errorToast = this.localize('no_frontwheel_error');
+          return;
+        }
+        if (this.newWheelchair.Hoops == null || this.newWheelchair.Hoops.length == 0) {
+          this.errorToast = this.localize('no_hoop_error');
+          return;
+        }
+        if (this.newWheelchair.Wheels == null || this.newWheelchair.Wheels.length == 0) {
+          this.errorToast = this.localize('no_wheels_error');
+          return;
+        }
+        if (this.newWheelchair.Tires == null || this.newWheelchair.Tires.length == 0) {
+          this.errorToast = this.localize('no_tires_error');
+          return;
+        }
+        if (this.newWheelchair.Color == null || Object.keys(this.newWheelchair.Color).length == 0) {
+          this.errorToast = this.localize('no_color_error');
+          return;
+        }
         this.$$('#saveWheelchairs').body = JSON.stringify(this.newWheelchair);
         this.$$('#saveWheelchairs').generateRequest();
       }
@@ -531,11 +554,26 @@
       wheelProtectorsCollapse(event) {
         this.$.wheelprotectors._toggleOpened(null);
         var index = event.target.attributes.getNamedItem('selectedWheelprotectors').value;
-        this.newWheelchair.Wheelprotectors = [];
-        this.newWheelchair.Wheelprotectors.push(this.wheelprotectors[index]);
+        if (this.newWheelchair.Wheelprotectors && this.newWheelchair.Wheelprotectors.length > 0) {
+          if (this.newWheelchair.Wheelprotectors[0].WheelprotectorId == this.wheelprotectors[index].WheelprotectorId) {
+            this.newWheelchair.Wheelprotectors = [];
+            this.notifyPath('newWheelchair.Wheelprotectors');
+          } else {
+            this.newWheelchair.Wheelprotectors = [];
+            this.newWheelchair.Wheelprotectors.push(this.wheelprotectors[index]);
+          }
+        } else {
+          this.newWheelchair.Wheelprotectors = [];
+          this.newWheelchair.Wheelprotectors.push(this.wheelprotectors[index]);
+        }
         this.notifyPath('newWheelchair.Wheelprotectors');
-        this.$.wheelprotectors.header =
-          `${this.localize('wheel_protectors')} : <u style='color:green'> ${this.newWheelchair.Wheelprotectors[0].Description}`;
+        if (this.newWheelchair.Wheelprotectors.length > 0) {
+          this.$.wheelprotectors.header =
+            `${this.localize('wheel_protectors')} : <u style='color:green'> ${this.newWheelchair.Wheelprotectors[0].Description}`;
+        } else {
+          this.$.wheelprotectors.header =
+            `${this.localize('wheel_protectors')}`;
+        }
       }
 
       onWheelchairColorChanged(colorCode) {
@@ -597,7 +635,7 @@
           `${this.localize('wheels')} : <u style='color:green'> ${this.newWheelchair.Wheels[0].Wheel.Description}`;
         this.$.tires.header =
           `${this.localize('tires')} : <u style='color:green'> ${this.newWheelchair.Tires[0].Tire.Description}`;
-        if (this.newWheelchair.Wheelprotectors) {
+        if (this.newWheelchair.Wheelprotectors && this.newWheelchair.Wheelprotectors.length > 0) {
           this.$.wheelprotectors.header =
             `${this.localize('wheel_protectors')} : <u style='color:green'> ${this.newWheelchair.Wheelprotectors[0].WheelProtector.Description}`;
         }
