@@ -64,8 +64,6 @@
 
     <iron-ajax id="getallusers" url="/backend/api/users" handle-as="json" on-response="handleResponse" loading="{{isLoading}}"
       headers="[[userParams(userdata)]]" method="GET" with-credentials content-type="application/json" on-error="handleError"></iron-ajax>
-    <iron-ajax id="saveUser" url="/backend/api/users" handle-as="json" on-response="onSaveResponse" on-error="onSaveError" loading="{{isLoading}}"
-      headers="[[userParams(userdata)]]" method="POST" with-credentials content-type="application/json"></iron-ajax>
     <iron-ajax id="addUser" url="/backend/api/users" handle-as="json" on-response="onAddResponse" on-error="onAddError" loading="{{isLoading}}"
       headers="[[userParams(userdata)]]" method="POST" with-credentials content-type="application/json"></iron-ajax>
 

@@ -19,6 +19,7 @@
 <link rel="lazy-import" href="pages/login-page.html">
 <link rel="import" href="pages/authorize-page.html">
 <link rel="import" href="pages/users-page.html">
+<link rel="import" href="pages/wheelchair-config-page.html">
 <link rel="import" href="pages/customers-page.html">
 
 <link rel="import" href="elements/global-toast-element.html">
@@ -74,6 +75,8 @@
     <brum-global-variable key="hasbeenauthorised" value="{{hasBeenAuthorised}}"></brum-global-variable>
     <brum-global-variable key="language" value="{{language}}"></brum-global-variable>
     <brum-global-variable key="page" value="{{page}}"></brum-global-variable>
+    <brum-global-variable key="wheelchairid" value="{{wheelchairId}}"></brum-global-variable>
+    <brum-global-variable key="customerid" value="{{customerId}}"></brum-global-variable>
 
     <app-location route="{{route}}" url-space-regex="^[[rootPath]]" use-hash-as-path>
     </app-location>
@@ -116,10 +119,10 @@
           <login-page name="login"></login-page>
           <authorize-page name="authorize"></authorize-page>
           <users-page name="users"></users-page>
+          <wheelchair-config-page name="wheelchair-config"></wheelchair-config-page>
           <wheelchairs-page name="wheelchairs"></wheelchairs-page>
           <customers-page name="customers"></customers-page>
-          <tns-404-page name="tns-404">
-          </tns-404-page>
+          <tns-404-page name="tns-404"></tns-404-page>
         </iron-pages>
       </app-header-layout>
     </app-drawer-layout>
@@ -195,6 +198,17 @@
           this.page = 'login';
           return;
         }
+        if (page == "wheelchair-config") {
+          if (this.wheelchairId == 0 || this.wheelchairId == null || this.wheelchairId == undefined) {
+            if (this.customerId == 0 || this.customerId == null || this.customerId == undefined) {
+              this.page = "customers"
+              window.history.replaceState({}, null, '#/customers');
+              window.dispatchEvent(new CustomEvent('location-changed'));
+              return;
+            }
+          }
+        }
+
 
         this.page = page || 'login';
 
@@ -247,6 +261,16 @@
           this.page = 'login';
         } else if (this.loggedIn && this.hasBeenAuthorised) {
           if (this.routeData.page && this.routeData.page != "login") {
+            if (this.routeData.page == "wheelchair-config") {
+              if (this.wheelchairId == 0 || this.wheelchairId == null || this.wheelchairId == undefined) {
+                if (this.customerId == 0 || this.customerId == null || this.customerId == undefined) {
+                  this.page = "customers"
+                  window.history.replaceState({}, null, '#/customers');
+                  window.dispatchEvent(new CustomEvent('location-changed'));
+                  return;
+                }
+              }
+            }
             this.page = this.routeData.page;
           } else {
             this.page = "wheelchairs";
