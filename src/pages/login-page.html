@@ -103,6 +103,12 @@
           this.onLogin();
         }
       }
+
+      checkForEnter(event) {
+        if (event.keyCode === 13) {
+          this.onLogin();
+        }
+      }
     }
 
     window.customElements.define(LoginPage.is, LoginPage);
