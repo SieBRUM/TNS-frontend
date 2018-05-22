@@ -171,7 +171,6 @@
           <paper-input id="LowerLegWidth" label="{{localize('lowerleg_width')}}" value="{{newWheelchair.LowerLegWidth}}" auto-validate
             pattern="[0-9]*" type="string" maxlength="4"></paper-input>
         </div>
-        <paper-button class="cancel" style="float:left">{{localize('cancel')}}</paper-button>
         <paper-button class="confirm" style="float:right" on-tap="onSave">{{localize('save')}}</paper-button>
         <paper-button class="preview" on-tap="showWheelchairPreviewDialog" style="float:right">{{localize('preview')}}</paper-button>
       </div>
@@ -545,7 +544,6 @@
           var color = this.ralcolors.filter(function (color) {
             return color.HexColorCode == colorCode;
           });
-          console.log(color);
           this.newWheelchair.Color = color[0];
           this.notifyPath('newWheelchair.Color');
           this.$.wheelchaircolor._toggleOpened(null);

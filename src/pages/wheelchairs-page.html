@@ -85,7 +85,7 @@
               <span>{{value.Username}}</span>
             </template>
           </paper-datatable-api-column>
-          <paper-datatable-api-column header="{{localize('order_date')}}" property="OrderDate">
+          <paper-datatable-api-column header="{{localize('date_of_measurement')}}" property="DateOfMeasurement">
             <template>
               <span>{{toHumanReadableTime(value)}}</span>
             </template>
@@ -139,9 +139,6 @@
       }
 
       toHumanReadableTime(time) {
-        if (!time) {
-          return this.localize('wheelchair_not_ordered')
-        }
         return time.replace("T", " ");
       }
 
