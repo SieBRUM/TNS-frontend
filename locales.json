@@ -86,7 +86,17 @@
         "color": "Color",
         "wheelchair_add_no_user": "Did not receive customer details!",
         "article": "Article",
-        "selected": "selected"
+        "selected": "selected",
+        "discount_number_only": "'Discount' can only contain numbers between 0 and 100!",
+        "amount_number_only": "'Amount' can only contain numbers between 0 and 100!",
+        "incorrect_sizes": "Wheelchair sizes can only contain numbers between 0 and 1000!",
+        "date_of_measurement": "Date of measurement",
+        "no_articles_error": "Wheelchair must have atleast one article!",
+        "no_frontwheel_error": "Wheelchair must have one frontwheel set!",
+        "no_hoop_error": "Wheelchair must have one hoop set!",
+        "no_wheels_error": "Wheelchair must have one wheel set!",
+        "no_tires_error": "Wheelchair must have one tire set!",
+        "no_color_error": "Wheelchair must have a color!"
     },
     "nl": {
         "app_title": "TNS Web applicatie",
@@ -174,7 +184,17 @@
         "wheel_protectors": "Wiel beschermers",
         "color": "Kleur",
         "wheelchair_add_no_user": "Geen klant meegegeven!",
-        "article": "Artiekel",
-        "selected": "geselecteerd"
+        "article": "Artikel",
+        "selected": "geselecteerd",
+        "discount_number_only": "'Korting' kan alleen nummers tussen de 0 en 100 bevatten!",
+        "amount_number_only": "'Aantal' kan alleen nummers tussen de 0 en 100 bevatten!",
+        "incorrect_sizes": "Rolstoel maten kunnen alleen nummers zijn tussen de 0 en 1000!",
+        "date_of_measurement": "Opmeet datum",
+        "no_articles_error": "Rolstoel moet op z'n minst 1 artikel hebben!!",
+        "no_frontwheel_error": "Rolstoel moet 1 voorwiel set hebben!",
+        "no_hoop_error": "Rolstoel moet 1 hoepel set hebben!",
+        "no_wheels_error": "Rolstoel moet 1 wiel set hebben!",
+        "no_tires_error": "Rolstoel moet 1 banden set hebben!",
+        "no_color_error": "Rolstoel moet een kleur hebben!"
     }
 }

@@ -106,7 +106,6 @@
         column-gap: 10px;
         display: flex;
       }
-
       .container {
         position: relative;
         color: white;
@@ -140,8 +139,9 @@
         <div class="dialog">
           <h1>{{localize('add_addition')}} ({{selectedArticle.Description}})</h1>
           <paper-textarea label="{{localize('comment')}}" value="{{addition.Comment}}"></paper-textarea>
-          <paper-input label="{{localize('discount')}}" value="{{addition.Discount}}" type="number"></paper-input>
-          <paper-input label="{{localize('amount')}}" value="{{addition.Amount}}" type="number"></paper-input>
+          <paper-input label="{{localize('discount')}}" value="{{addition.Discount}}" auto-validate pattern="[0-9]*" type="string"
+            maxlength="2"></paper-input>
+          <paper-input label="{{localize('amount')}}" value="{{addition.Amount}}" auto-validate pattern="[0-9]*" type="string" maxlength="2"></paper-input>
           <br>
           <paper-button on-tap="onCancel" class="pull-right dismiss">{{localize('cancel')}}</paper-button>
           <paper-button on-tap="onSaveNotes" class="confirm">{{localize('save')}}</paper-button>
@@ -185,7 +185,6 @@
           <paper-input id="LowerLegWidth" label="{{localize('lowerleg_width')}}" value="{{newWheelchair.LowerLegWidth}}" on-change="onInputChange"
             type="number"></paper-input>
         </div>
-        <paper-button class="cancel" style="float:left">{{localize('cancel')}}</paper-button>
         <paper-button class="confirm" style="float:right" on-tap="onSave">{{localize('save')}}</paper-button>
         <paper-button class="preview" on-tap="showWheelchairPreviewDialog" style="float:right">{{localize('preview')}}</paper-button>
       </div>
@@ -199,8 +198,6 @@
             <paper-icon-button icon="editor:mode-edit" product$="[[item]]" on-tap="addArticleNote"></paper-icon-button>
             <br/>
           </template>
-          <!-- gets all selected checkboxes and put it in a list -->
-          <!-- <array-selector id="arraySelector" items="{{articles}}" selected="{{newWheelchair.Articles}}" multi toggle></array-selector> -->
         </paper-collapse-item>
 
         <paper-collapse-item id="frontwheels" header="{{localize('frontwheels')}}">
@@ -251,7 +248,7 @@
           </paper-radio-group>
         </paper-collapse-item>
 
-        <paper-collapse-item id="wheelprotectors" header="{{localize('wheel_protectors')}}">
+        <paper-collapse-item id="wheelprotectors" header="{{localize('wheel_protectors')}}" allow-empty-selection>
           <paper-radio-group>
             <template is="dom-repeat" items="[[wheelprotectors]]">
               <paper-radio-button selectedWheelprotectors$="[[index]]" name="{{item.Description}}" on-tap="wheelProtectorsCollapse" checked="{{isWheelprotectorChecked(item, newWheelchair.Wheelprotectors)}}">[[item.Description]]
@@ -327,7 +324,6 @@
             type: Object
           },
           wheelchairColor: {
-            value: "#F5FF00",
             observer: 'onWheelchairColorChanged'
           },
           userdata: {
@@ -347,7 +343,7 @@
         super.connectedCallback();
         this.loadResources(this.resolveUrl('../../locales.json'));
       }
-
+      
       onInputChange() {
         var canvas = this.$$('canvas');
         var ctx = canvas.getContext("2d");
@@ -840,6 +836,7 @@
         //renders scene to the WebGLRenderer
         renderer.render(scene, camera);
       }
+    
       isArticleChecked(article, selectedArticles) {
         var shouldChecked = false;
         selectedArticles.forEach(selected => {
@@ -890,7 +887,6 @@
         return shouldChecked;
       }
 
-
       isWheelprotectorChecked(wheelprotector, selectedWheelprotector) {
         var shouldChecked = false;
         selectedWheelprotector.forEach(selected => {
@@ -922,6 +918,17 @@
       }
 
       onSaveNotes() {
+        if (!(/^\d+$/.test(this.addition.Discount)) || parseInt(this.addition.Discount) > 99 ||
+          parseInt(this.addition.Discount) < 0) {
+          this.errorToast = this.localize('discount_number_only');
+          return;
+        }
+        if (!(/^\d+$/.test(this.addition.Amount)) || parseInt(this.addition.Amount) > 99 ||
+          parseInt(this.addition.Amount) < 0) {
+          this.errorToast = this.localize('amount_number_only');
+          return;
+        }
+
         var that = this;
         if (this.selectedArticle.Type == "Article") {
           this._saveArticleNote();
@@ -936,7 +943,7 @@
         } else if (this.selectedArticle.Type == "Wheel") {
           this._saveWheelNote();
         } else {
-          this.newWheelchair.Addition = this.Addition;
+          this.newWheelchair.Addition = this.addition;
         }
         this.$$('#addNotesDialog').opened = false;
       }
@@ -956,6 +963,38 @@
       }
 
       onSave() {
+        if (!this._validateNumbers(this.newWheelchair.SeatWidth) || !this._validateNumbers(this.newWheelchair.FootplateWidth) ||
+          !this._validateNumbers(this.newWheelchair.SeatDepth) || !this._validateNumbers(this.newWheelchair.FrameLength) ||
+          !this._validateNumbers(this.newWheelchair.BackrestHeight) || !this._validateNumbers(this.newWheelchair.SeatHeightFront) ||
+          !this._validateNumbers(this.newWheelchair.SeatHeightBack) || !this._validateNumbers(this.newWheelchair.BalancePoint) ||
+          !this._validateNumbers(this.newWheelchair.LowerLegWidth)) {
+          this.errorToast = this.localize('incorrect_sizes');
+          return;
+        }
+        if (this.newWheelchair.Articles == null || this.newWheelchair.Articles.length == 0) {
+          this.errorToast = this.localize('no_articles_error');
+          return;
+        }
+        if (this.newWheelchair.Frontwheels == null || this.newWheelchair.Frontwheels.length == 0) {
+          this.errorToast = this.localize('no_frontwheel_error');
+          return;
+        }
+        if (this.newWheelchair.Hoops == null || this.newWheelchair.Hoops.length == 0) {
+          this.errorToast = this.localize('no_hoop_error');
+          return;
+        }
+        if (this.newWheelchair.Wheels == null || this.newWheelchair.Wheels.length == 0) {
+          this.errorToast = this.localize('no_wheels_error');
+          return;
+        }
+        if (this.newWheelchair.Tires == null || this.newWheelchair.Tires.length == 0) {
+          this.errorToast = this.localize('no_tires_error');
+          return;
+        }
+        if (this.newWheelchair.Color == null || Object.keys(this.newWheelchair.Color).length == 0) {
+          this.errorToast = this.localize('no_color_error');
+          return;
+        }
         this.$$('#saveWheelchairs').body = JSON.stringify(this.newWheelchair);
         this.$$('#saveWheelchairs').generateRequest();
       }
@@ -1023,15 +1062,31 @@
       wheelProtectorsCollapse(event) {
         this.$.wheelprotectors._toggleOpened(null);
         var index = event.target.attributes.getNamedItem('selectedWheelprotectors').value;
-        this.newWheelchair.Wheelprotectors = [];
-        this.newWheelchair.Wheelprotectors.push(this.wheelprotectors[index]);
+        if (this.newWheelchair.Wheelprotectors && this.newWheelchair.Wheelprotectors.length > 0) {
+          if (this.newWheelchair.Wheelprotectors[0].WheelprotectorId == this.wheelprotectors[index].WheelprotectorId) {
+            this.newWheelchair.Wheelprotectors = [];
+            this.notifyPath('newWheelchair.Wheelprotectors');
+          } else {
+            this.newWheelchair.Wheelprotectors = [];
+            this.newWheelchair.Wheelprotectors.push(this.wheelprotectors[index]);
+          }
+        } else {
+          this.newWheelchair.Wheelprotectors = [];
+          this.newWheelchair.Wheelprotectors.push(this.wheelprotectors[index]);
+        }
         this.notifyPath('newWheelchair.Wheelprotectors');
-        this.$.wheelprotectors.header =
-          `${this.localize('wheel_protectors')} : <u style='color:green'> ${this.newWheelchair.Wheelprotectors[0].Description}`;
+        if (this.newWheelchair.Wheelprotectors.length > 0) {
+          this.$.wheelprotectors.header =
+            `${this.localize('wheel_protectors')} : <u style='color:green'> ${this.newWheelchair.Wheelprotectors[0].Description}`;
+        } else {
+          this.$.wheelprotectors.header =
+            `${this.localize('wheel_protectors')}`;
+        }
       }
 
       onWheelchairColorChanged(colorCode) {
         if (this.ralcolors) {
+          colorCode = colorCode.toUpperCase();
           var color = this.ralcolors.filter(function (color) {
             return color.HexColorCode == colorCode;
           });
@@ -1089,7 +1144,7 @@
           `${this.localize('wheels')} : <u style='color:green'> ${this.newWheelchair.Wheels[0].Wheel.Description}`;
         this.$.tires.header =
           `${this.localize('tires')} : <u style='color:green'> ${this.newWheelchair.Tires[0].Tire.Description}`;
-        if (this.newWheelchair.Wheelprotectors) {
+        if (this.newWheelchair.Wheelprotectors && this.newWheelchair.Wheelprotectors.length > 0) {
           this.$.wheelprotectors.header =
             `${this.localize('wheel_protectors')} : <u style='color:green'> ${this.newWheelchair.Wheelprotectors[0].WheelProtector.Description}`;
         }
@@ -1371,6 +1426,15 @@
           wheel.WheelId = wheel.Id;
           delete wheel["Id"];
         });
+      }
+      
+      _validateNumbers(number) {
+        if (!(/^\d+$/.test(number)) || parseInt(number) > 9999 ||
+          parseInt(number) < 0) {
+          return false;
+        }
+
+        return true;
       }
     }
     window.customElements.define(WheelchairConfigPage.is, WheelchairConfigPage);
