@@ -106,6 +106,7 @@
         column-gap: 10px;
         display: flex;
       }
+
       .container {
         position: relative;
         color: white;
@@ -167,26 +168,26 @@
         </div>
         <div style="column-count: 3; margin-bottom: 20px; margin-top:400px;">
           <paper-input id="SeatWidth" label="{{localize('seat_width')}}" value="{{newWheelchair.SeatWidth}}" on-change="onInputChange"
-            type="number"></paper-input>
+            auto-validate pattern="[0-9]*" type="string" maxlength="4"></paper-input>
           <paper-input id="FootplateWidth" label="{{localize('footplate_width')}}" value="{{newWheelchair.FootplateWidth}}" on-change="onInputChange"
-            type="number"></paper-input>
+            auto-validate pattern="[0-9]*" type="string" maxlength="4"></paper-input>
           <paper-input id="SeatDepth" label="{{localize('seat_depth')}}" value="{{newWheelchair.SeatDepth}}" on-change="onInputChange"
-            type="number"></paper-input>
+            auto-validate pattern="[0-9]*" type="string" maxlength="4"></paper-input>
           <paper-input id="FrameLength" label="{{localize('frame_length')}}" value="{{newWheelchair.FrameLength}}" on-change="onInputChange"
-            type="number"></paper-input>
+            auto-validate pattern="[0-9]*" type="string" maxlength="4"></paper-input>
           <paper-input id="BackrestHeight" label="{{localize('backrest_height')}}" value="{{newWheelchair.BackrestHeight}}" on-change="onInputChange"
-            type="number"></paper-input>
+            auto-validate pattern="[0-9]*" type="string" maxlength="4"></paper-input>
           <paper-input id="SeatheightFront" label="{{localize('seat_height_front')}}" value="{{newWheelchair.SeatHeightFront}}" on-change="onInputChange"
-            type="number"></paper-input>
+            auto-validate pattern="[0-9]*" type="string" maxlength="4"></paper-input>
           <paper-input id="SeatheightBack" label="{{localize('seat_height_back')}}" value="{{newWheelchair.SeatHeightBack}}" on-change="onInputChange"
-            type="number"></paper-input>
+            auto-validate pattern="[0-9]*" type="string" maxlength="4"></paper-input>
           <paper-input id="BalancePoint" label="{{localize('balance_point')}}" value="{{newWheelchair.BalancePoint}}" on-change="onInputChange"
-            type="number"></paper-input>
+            auto-validate pattern="[0-9]*" type="string" maxlength="4"></paper-input>
           <paper-input id="LowerLegWidth" label="{{localize('lowerleg_width')}}" value="{{newWheelchair.LowerLegWidth}}" on-change="onInputChange"
-            type="number"></paper-input>
+            auto-validate pattern="[0-9]*" type="string" maxlength="4"></paper-input>
         </div>
         <paper-button class="confirm" style="float:right" on-tap="onSave">{{localize('save')}}</paper-button>
-        <paper-button class="preview" on-tap="showWheelchairPreviewDialog" style="float:right">{{localize('preview')}}</paper-button>
+        <paper-button class="preview" on-tap="showWheelchairPreview" style="float:right">{{localize('preview')}}</paper-button>
       </div>
       <div class="collapsebox">
         <paper-collapse-item id="articles" class="styled" header="{{localize('articles')}}">
@@ -313,7 +314,7 @@
               Color: {}
             },
             type: Object,
-            observer: 'showWheelchairPreviewDialog'
+            observer: 'showWheelchairPreview'
           },
           selectedArticle: {
             value: {},
@@ -343,7 +344,609 @@
         super.connectedCallback();
         this.loadResources(this.resolveUrl('../../locales.json'));
       }
-      
+
+      isArticleChecked(article, selectedArticles) {
+        var shouldChecked = false;
+        selectedArticles.forEach(selected => {
+          if (selected.ArticleId == article.ArticleId) {
+            shouldChecked = true;
+          }
+        });
+        return shouldChecked;
+      }
+
+      isFrontwheelChecked(frontwheel, selectedFrontwheels) {
+        var shouldChecked = false;
+        selectedFrontwheels.forEach(selected => {
+          if (selected.FrontWheelId == frontwheel.FrontWheelId) {
+            shouldChecked = true;
+          }
+        });
+        return shouldChecked;
+      }
+
+      isHoopChecked(hoop, selectedHoops) {
+        var shouldChecked = false;
+        selectedHoops.forEach(selected => {
+          if (selected.HoopId == hoop.HoopId) {
+            shouldChecked = true;
+          }
+        });
+        return shouldChecked;
+      }
+
+      isWheelChecked(wheel, selectedWheels) {
+        var shouldChecked = false;
+        selectedWheels.forEach(selected => {
+          if (selected.WheelId == wheel.WheelId) {
+            shouldChecked = true;
+          }
+        });
+        return shouldChecked;
+      }
+
+      isTireChecked(tire, selectedTires) {
+        var shouldChecked = false;
+        selectedTires.forEach(selected => {
+          if (selected.TireId == tire.TireId) {
+            shouldChecked = true;
+          }
+        });
+        return shouldChecked;
+      }
+
+      isWheelprotectorChecked(wheelprotector, selectedWheelprotector) {
+        var shouldChecked = false;
+        selectedWheelprotector.forEach(selected => {
+          if (selected.WheelprotectorId == wheelprotector.WheelprotectorId) {
+            shouldChecked = true;
+          }
+        });
+        return shouldChecked;
+      }
+
+      handleResponse(data, request) {
+        this.articles = request.response.Articles;
+        this.wheels = request.response.Wheel;
+        this.frontwheels = request.response.FrontWheels;
+        this.hoops = request.response.Hoops;
+        this.tires = request.response.Tires;
+        this.wheelprotectors = request.response.WheelProtector;
+        this._convertToBackendObjects();
+
+        this.ralcolors = request.response.RalColors;
+        this.ralColorCodes = [];
+        var that = this;
+        this.ralcolors.forEach(function (color) {
+          that.ralColorCodes.push(color.HexColorCode);
+        });
+      }
+      onCancel() {
+        this.$$('#addNotesDialog').opened = false;
+      }
+
+      onSaveNotes() {
+        if (!(/^\d+$/.test(this.addition.Discount)) || parseInt(this.addition.Discount) > 99 ||
+          parseInt(this.addition.Discount) < 0) {
+          this.errorToast = this.localize('discount_number_only');
+          return;
+        }
+        if (!(/^\d+$/.test(this.addition.Amount)) || parseInt(this.addition.Amount) > 99 ||
+          parseInt(this.addition.Amount) < 0) {
+          this.errorToast = this.localize('amount_number_only');
+          return;
+        }
+
+        var that = this;
+        if (this.selectedArticle.Type == "Article") {
+          this._saveArticleNote();
+        } else if (this.selectedArticle.Type == "Wheelprotector") {
+          this._saveWheelprotectorNote();
+        } else if (this.selectedArticle.Type == "Tire") {
+          this._saveTireNote();
+        } else if (this.selectedArticle.Type == "Frontwheel") {
+          this._saveFrontwheelNote();
+        } else if (this.selectedArticle.Type == "Hoop") {
+          this._saveHoopNote();
+        } else if (this.selectedArticle.Type == "Wheel") {
+          this._saveWheelNote();
+        } else {
+          this.newWheelchair.Addition = this.addition;
+        }
+        this.$$('#addNotesDialog').opened = false;
+      }
+
+      onSaveError(event) {
+        this.errorToast = event.detail.request.xhr.statusText;
+      }
+
+      handleError(response, data) {
+        if (data.request.status == 403) {
+          this.errorToast = this.localize('access_denied', 'error', data.request.response);
+          this.userdata = "{}";
+          this.loggedIn = false;
+        } else {
+          this.errorToast = this.localize('unknown_error', 'error', data.request.response);
+        }
+      }
+
+      onSave() {
+        if (!this._validateNumbers(this.newWheelchair.SeatWidth) || !this._validateNumbers(this.newWheelchair.FootplateWidth) ||
+          !this._validateNumbers(this.newWheelchair.SeatDepth) || !this._validateNumbers(this.newWheelchair.FrameLength) ||
+          !this._validateNumbers(this.newWheelchair.BackrestHeight) || !this._validateNumbers(this.newWheelchair.SeatHeightFront) ||
+          !this._validateNumbers(this.newWheelchair.SeatHeightBack) || !this._validateNumbers(this.newWheelchair.BalancePoint) ||
+          !this._validateNumbers(this.newWheelchair.LowerLegWidth)) {
+          this.errorToast = this.localize('incorrect_sizes');
+          return;
+        }
+        if (this.newWheelchair.Articles == null || this.newWheelchair.Articles.length == 0) {
+          this.errorToast = this.localize('no_articles_error');
+          return;
+        }
+        if (this.newWheelchair.Frontwheels == null || this.newWheelchair.Frontwheels.length == 0) {
+          this.errorToast = this.localize('no_frontwheel_error');
+          return;
+        }
+        if (this.newWheelchair.Hoops == null || this.newWheelchair.Hoops.length == 0) {
+          this.errorToast = this.localize('no_hoop_error');
+          return;
+        }
+        if (this.newWheelchair.Wheels == null || this.newWheelchair.Wheels.length == 0) {
+          this.errorToast = this.localize('no_wheels_error');
+          return;
+        }
+        if (this.newWheelchair.Tires == null || this.newWheelchair.Tires.length == 0) {
+          this.errorToast = this.localize('no_tires_error');
+          return;
+        }
+        if (this.newWheelchair.Color == null || Object.keys(this.newWheelchair.Color).length == 0) {
+          this.errorToast = this.localize('no_color_error');
+          return;
+        }
+        this.$$('#saveWheelchairs').body = JSON.stringify(this.newWheelchair);
+        this.$$('#saveWheelchairs').generateRequest();
+      }
+
+      toggleSelection(event) {
+        var index = event.target.attributes.getNamedItem('selectedArticle').value
+        if (this.isArticleChecked(this.articles[index], this.newWheelchair.Articles)) {
+          for (var i = this.newWheelchair.Articles.length - 1; i >= 0; --i) {
+            if (this.newWheelchair.Articles[i].ArticleId == this.articles[index].ArticleId) {
+              this.newWheelchair.Articles.splice(i, 1);
+            }
+          }
+        } else {
+          this.newWheelchair.Articles.push(this.articles[index]);
+        }
+        if (this.newWheelchair.Articles.length == 1) {
+          this.$.articles.header =
+            `${this.localize('articles')} : <u style='color:green'> 1 ${this.localize('article')} ${this.localize('selected')}</u>`;
+        } else {
+          this.$.articles.header =
+            `${this.localize('articles')} : <u style='color:green'> ${this.newWheelchair.Articles.length} ${this.localize('articles')} ${this.localize('selected')}</u>`;
+        }
+      }
+
+      frontWheelsCollapse(event) {
+        this.$.frontwheels._toggleOpened(null);
+        var index = event.target.attributes.getNamedItem('selectedFrontwheels').value;
+        this.newWheelchair.Frontwheels = [];
+        this.newWheelchair.Frontwheels.push(this.frontwheels[index]);
+        this.notifyPath('newWheelchair.Frontwheels');
+        this.$.frontwheels.header =
+          `${this.localize('frontwheels')} : <u style='color:green'> ${this.newWheelchair.Frontwheels[0].Description}`;
+      }
+
+      hoopsCollapse(event) {
+        this.$.hoops._toggleOpened(null);
+        var index = event.target.attributes.getNamedItem('selectedHoops').value;
+        this.newWheelchair.Hoops = [];
+        this.newWheelchair.Hoops.push(this.hoops[index]);
+        this.notifyPath('newWheelchair.Hoops');
+        this.$.hoops.header =
+          `${this.localize('hoops')} : <u style='color:green'> ${this.newWheelchair.Hoops[0].Description}`;
+      }
+
+      wheelsCollapse(event) {
+        this.$.wheels._toggleOpened(null);
+        var index = event.target.attributes.getNamedItem('selectedWheels').value;
+        this.newWheelchair.Wheels = [];
+        this.newWheelchair.Wheels.push(this.wheels[index]);
+        this.notifyPath('newWheelchair.Wheels');
+        this.$.wheels.header =
+          `${this.localize('wheels')} : <u style='color:green'> ${this.newWheelchair.Wheels[0].Description}`;
+      }
+
+      tiresCollapse(event) {
+        this.$.tires._toggleOpened(null);
+        var index = event.target.attributes.getNamedItem('selectedTires').value;
+        this.newWheelchair.Tires = [];
+        this.newWheelchair.Tires.push(this.tires[index]);
+        this.notifyPath('newWheelchair.Tires');
+        this.$.tires.header =
+          `${this.localize('tires')} : <u style='color:green'> ${this.newWheelchair.Tires[0].Description}`;
+      }
+
+      wheelProtectorsCollapse(event) {
+        this.$.wheelprotectors._toggleOpened(null);
+        var index = event.target.attributes.getNamedItem('selectedWheelprotectors').value;
+        if (this.newWheelchair.Wheelprotectors && this.newWheelchair.Wheelprotectors.length > 0) {
+          if (this.newWheelchair.Wheelprotectors[0].WheelprotectorId == this.wheelprotectors[index].WheelprotectorId) {
+            this.newWheelchair.Wheelprotectors = [];
+            this.notifyPath('newWheelchair.Wheelprotectors');
+          } else {
+            this.newWheelchair.Wheelprotectors = [];
+            this.newWheelchair.Wheelprotectors.push(this.wheelprotectors[index]);
+          }
+        } else {
+          this.newWheelchair.Wheelprotectors = [];
+          this.newWheelchair.Wheelprotectors.push(this.wheelprotectors[index]);
+        }
+        this.notifyPath('newWheelchair.Wheelprotectors');
+        if (this.newWheelchair.Wheelprotectors.length > 0) {
+          this.$.wheelprotectors.header =
+            `${this.localize('wheel_protectors')} : <u style='color:green'> ${this.newWheelchair.Wheelprotectors[0].Description}`;
+        } else {
+          this.$.wheelprotectors.header =
+            `${this.localize('wheel_protectors')}`;
+        }
+      }
+
+      onWheelchairColorChanged(colorCode) {
+        if (this.ralcolors) {
+          colorCode = colorCode.toUpperCase();
+          var color = this.ralcolors.filter(function (color) {
+            return color.HexColorCode == colorCode;
+          });
+          this.newWheelchair.Color = color[0];
+          this.notifyPath('newWheelchair.Color');
+          this.$.wheelchaircolor._toggleOpened(null);
+          //header dot changes to selected color
+          this.$.wheelchaircolor.header =
+            `${this.localize('color')} : RAL ${this.newWheelchair.Color.ColorCode}
+            <div style='background-color: ${this.newWheelchair.Color.HexColorCode}; width:25px; height:25px; border-radius: 50%; display:inline; float:right; margin-right:20px;'> </div>`;
+          this.showWheelchairPreview();
+        }
+      }
+
+      onSaveResponse(data, request) {
+        this.succesToast = this.localize('save_wheelchair_success');
+        this.handleGetResponse(data, request);
+      }
+
+      handleGetResponse(data, request) {
+        this.newWheelchair = request.response;
+        this.newWheelchair.OldId = this.newWheelchair.Id;
+        delete this.newWheelchair["Id"];
+        this.newWheelchair.Articles.forEach(function (article) {
+          article.Id = 0;
+        });
+        this.newWheelchair.Frontwheels.forEach(function (fwheel) {
+          fwheel.Id = 0;
+        });
+        this.newWheelchair.Hoops.forEach(function (hoop) {
+          hoop.Id = 0;
+        });
+        this.newWheelchair.Tires.forEach(function (tire) {
+          tire.Id = 0;
+        });
+        this.newWheelchair.Wheelprotectors.forEach(function (wp) {
+          wp.Id = 0;
+        });
+        this.newWheelchair.Wheels.forEach(function (wheel) {
+          wheel.Id = 0;
+        });
+        this.wheelchairColor = this.newWheelchair.Color.HexColorCode;
+        if (this.newWheelchair.Articles.length == 1) {
+          this.$.articles.header =
+            `${this.localize('articles')} : <u style='color:green'> 1 ${this.localize('article')} ${this.localize('selected')}</u>`;
+        } else {
+          this.$.articles.header =
+            `${this.localize('articles')} : <u style='color:green'> ${this.newWheelchair.Articles.length} ${this.localize('articles')} ${this.localize('selected')}</u>`;
+        }
+        this.$.frontwheels.header =
+          `${this.localize('frontwheels')} : <u style='color:green'> ${this.newWheelchair.Frontwheels[0].Frontwheel.Description}`;
+        this.$.hoops.header =
+          `${this.localize('hoops')} : <u style='color:green'> ${this.newWheelchair.Hoops[0].Hoop.Description}`;
+        this.$.wheels.header =
+          `${this.localize('wheels')} : <u style='color:green'> ${this.newWheelchair.Wheels[0].Wheel.Description}`;
+        this.$.tires.header =
+          `${this.localize('tires')} : <u style='color:green'> ${this.newWheelchair.Tires[0].Tire.Description}`;
+        if (this.newWheelchair.Wheelprotectors && this.newWheelchair.Wheelprotectors.length > 0) {
+          this.$.wheelprotectors.header =
+            `${this.localize('wheel_protectors')} : <u style='color:green'> ${this.newWheelchair.Wheelprotectors[0].WheelProtector.Description}`;
+        }
+      }
+
+
+      userParams(userdata) {
+        if (userdata == null || userdata == "") {
+          return null;
+        }
+        var user = JSON.parse(userdata);
+        if (Object.keys(user).length == 0) {
+          return null;
+        }
+        var requestBody = {
+          Username: user.username,
+          Token: user.accesstoken
+        };
+        return requestBody;
+      }
+
+      addArticleNote(event) {
+        var that = this;
+        this.addition = {};
+        var product = JSON.parse(event.target.getAttribute('product'));
+        var containsArticle = false;
+        this.newWheelchair.Articles.forEach(function (article) {
+          if (article.ArticleId == product.ArticleId) {
+            containsArticle = true;
+            if (article.Addition) {
+              that.addition = article.Addition;
+            }
+          }
+        });
+
+        if (containsArticle) {
+          product.Type = "Article";
+          this.selectedArticle = product;
+          this.$$('#addNotesDialog').opened = true;
+        } else {
+          this.errorToast = this.localize('add_product_before_note');
+        }
+      }
+
+      addWheelprotectorNote(event) {
+        var that = this;
+        this.addition = {};
+        var product = JSON.parse(event.target.getAttribute('product'));
+        var containsArticle = false;
+        this.newWheelchair.Wheelprotectors.forEach(function (protector) {
+          if (protector.WheelprotectorId == product.WheelprotectorId) {
+            containsArticle = true;
+            if (protector.Addition) {
+              that.addition = protector.Addition;
+            }
+          }
+        });
+
+        if (containsArticle) {
+          product.Type = "Wheelprotector";
+          this.selectedArticle = product;
+          this.$$('#addNotesDialog').opened = true;
+        } else {
+          this.errorToast = this.localize('add_product_before_note');
+        }
+      }
+
+      addFrontwheelNote(event) {
+        var that = this;
+        this.addition = {};
+        var product = JSON.parse(event.target.getAttribute('product'));
+        var containsArticle = false;
+        this.newWheelchair.Frontwheels.forEach(function (frontwheel) {
+          if (frontwheel.FrontWheelId == product.FrontWheelId) {
+            containsArticle = true;
+            if (frontwheel.Addition) {
+              that.addition = frontwheel.Addition;
+            }
+          }
+        });
+
+        if (containsArticle) {
+          product.Type = "Frontwheel";
+          this.selectedArticle = product;
+          this.$$('#addNotesDialog').opened = true;
+        } else {
+          this.errorToast = this.localize('add_product_before_note');
+        }
+      }
+
+      addHoopNote(event) {
+        var that = this;
+        this.addition = {};
+        var product = JSON.parse(event.target.getAttribute('product'));
+        var containsArticle = false;
+        this.newWheelchair.Hoops.forEach(function (hoop) {
+          if (hoop.HoopId == product.HoopId) {
+            containsArticle = true;
+            if (hoop.Addition) {
+              that.addition = hoop.Addition;
+            }
+          }
+        });
+
+        if (containsArticle) {
+          product.Type = "Hoop";
+          this.selectedArticle = product;
+          this.$$('#addNotesDialog').opened = true;
+        } else {
+          this.errorToast = this.localize('add_product_before_note');
+        }
+      }
+
+      addWheelNote(event) {
+        var that = this;
+        this.addition = {};
+        var product = JSON.parse(event.target.getAttribute('product'));
+        var containsArticle = false;
+        this.newWheelchair.Wheels.forEach(function (wheel) {
+          if (wheel.WheelId == product.WheelId) {
+            containsArticle = true;
+            if (wheel.Addition) {
+              that.addition = wheel.Addition;
+            }
+          }
+        });
+
+        if (containsArticle) {
+          product.Type = "Wheel";
+          this.selectedArticle = product;
+          this.$$('#addNotesDialog').opened = true;
+        } else {
+          this.errorToast = this.localize('add_product_before_note');
+        }
+      }
+
+      addTireNote(event) {
+        var that = this;
+        this.addition = {};
+        var product = JSON.parse(event.target.getAttribute('product'));
+        var containsArticle = false;
+        this.newWheelchair.Tires.forEach(function (tire) {
+          if (tire.TireId == product.TireId) {
+            containsArticle = true;
+            if (tire.Addition) {
+              that.addition = tire.Addition;
+            }
+          }
+        });
+
+        if (containsArticle) {
+          product.Type = "Tire";
+          this.selectedArticle = product;
+          this.$$('#addNotesDialog').opened = true;
+        } else {
+          this.errorToast = this.localize('add_product_before_note');
+        }
+      }
+
+      _saveArticleNote() {
+        var that = this;
+        this.newWheelchair.Articles.forEach(function (article) {
+          if (article.ArticleId == that.selectedArticle.ArticleId) {
+            article.Addition = that.addition;
+          }
+        });
+      }
+
+      _saveWheelprotectorNote() {
+        var that = this;
+        this.newWheelchair.Wheelprotectors.forEach(function (wheelprotector) {
+          if (wheelprotector.WheelprotectorId == that.selectedArticle.WheelprotectorId) {
+            wheelprotector.Addition = that.addition;
+          }
+        });
+      }
+
+
+      _saveFrontwheelNote() {
+        var that = this;
+        this.newWheelchair.Frontwheels.forEach(function (frontwheel) {
+          if (frontwheel.FrontWheelId == that.selectedArticle.FrontWheelId) {
+            frontwheel.Addition = that.addition;
+          }
+        });
+      }
+
+      _saveHoopNote() {
+        var that = this;
+        this.newWheelchair.Hoops.forEach(function (hoop) {
+          if (hoop.HoopId == that.selectedArticle.HoopId) {
+            hoop.Addition = that.addition;
+          }
+        });
+      }
+
+      _saveWheelNote() {
+        var that = this;
+        this.newWheelchair.Wheels.forEach(function (wheel) {
+          if (wheel.WheelId == that.selectedArticle.WheelId) {
+            wheel.Addition = that.addition;
+          }
+        });
+      }
+
+      _saveTireNote() {
+        var that = this;
+        this.newWheelchair.Tires.forEach(function (tire) {
+          if (tire.TireId == that.selectedArticle.TireId) {
+            tire.Addition = that.addition;
+          }
+        });
+      }
+
+      _onPageChanged() {
+        if (this.page == "wheelchair-config") {
+          if (this.userdata != "" && this.userdata != undefined) {
+            this.$.getArticles.generateRequest();
+            if (this.wheelchairId != 0 && this.wheelchairId != null && this.wheelchairId != undefined) {
+              this.$$('#getwheelchair').generateRequest();
+            } else if (this.customerId != 0 && this.customerId != null && this.customerId != undefined) {
+              this.newWheelchair.CustomerId = this.customerId;
+            }
+          }
+        } else {
+          this.newWheelchair = {
+            Addition: [],
+            Articles: [],
+            Frontwheels: [],
+            Hoops: [],
+            Wheels: [],
+            Tires: [],
+            Wheelprotectors: [],
+            Color: {},
+            OldId: 0
+          };
+          this.customerId = 0;
+          this.wheelchairId = 0;
+          this.$.frontwheels.header = `${this.localize('frontwheels')}`;
+          this.$.hoops.header = `${this.localize('hoops')}`;
+          this.$.wheels.header = `${this.localize('wheels')}`;
+          this.$.tires.header = `${this.localize('tires')}`;
+          this.$.wheelprotectors.header = `${this.localize('wheel_protectors')}`;
+          this.$.wheelchaircolor.header = `${this.localize('color')}`;
+          this.$.articles.header = `${this.localize('articles')}`;
+        }
+      }
+
+      _onLoadingChanged(newValue) {
+        if (newValue) {
+          this.$$('#loadingDialog').opened = true;
+        } else {
+          this.$$('#loadingDialog').opened = false;
+        }
+      }
+
+      _convertToBackendObjects() {
+        this.articles.forEach(function (article) {
+          article.ArticleId = article.Id;
+          delete article["Id"];
+        });
+        this.wheelprotectors.forEach(function (wheelprotector) {
+          wheelprotector.WheelprotectorId = wheelprotector.Id;
+          delete wheelprotector["Id"];
+        });
+        this.tires.forEach(function (tire) {
+          tire.TireId = tire.Id;
+          delete tire["Id"];
+        });
+        this.frontwheels.forEach(function (frontwheel) {
+          frontwheel.FrontWheelId = frontwheel.Id;
+          delete frontwheel["Id"];
+        });
+        this.hoops.forEach(function (hoop) {
+          hoop.HoopId = hoop.Id;
+          delete hoop["Id"];
+        });
+        this.wheels.forEach(function (wheel) {
+          wheel.WheelId = wheel.Id;
+          delete wheel["Id"];
+        });
+      }
+
+      _validateNumbers(number) {
+        if (!(/^\d+$/.test(number)) || parseInt(number) > 9999 ||
+          parseInt(number) < 0) {
+          return false;
+        }
+
+        return true;
+      }
+
+
+      /// Preview render from here...
       onInputChange() {
         var canvas = this.$$('canvas');
         var ctx = canvas.getContext("2d");
@@ -361,7 +964,7 @@
         ctx.fillText(this.$.LowerLegWidth.value, 275, 220);
       }
 
-      showWheelchairPreviewDialog() {
+      showWheelchairPreview() {
         //gets div element
         var div = this.$$('#renderCanvas');
         if (div.children.length > 1)
@@ -835,606 +1438,6 @@
 
         //renders scene to the WebGLRenderer
         renderer.render(scene, camera);
-      }
-    
-      isArticleChecked(article, selectedArticles) {
-        var shouldChecked = false;
-        selectedArticles.forEach(selected => {
-          if (selected.ArticleId == article.ArticleId) {
-            shouldChecked = true;
-          }
-        });
-        return shouldChecked;
-      }
-
-      isFrontwheelChecked(frontwheel, selectedFrontwheels) {
-        var shouldChecked = false;
-        selectedFrontwheels.forEach(selected => {
-          if (selected.FrontWheelId == frontwheel.FrontWheelId) {
-            shouldChecked = true;
-          }
-        });
-        return shouldChecked;
-      }
-
-      isHoopChecked(hoop, selectedHoops) {
-        var shouldChecked = false;
-        selectedHoops.forEach(selected => {
-          if (selected.HoopId == hoop.HoopId) {
-            shouldChecked = true;
-          }
-        });
-        return shouldChecked;
-      }
-
-      isWheelChecked(wheel, selectedWheels) {
-        var shouldChecked = false;
-        selectedWheels.forEach(selected => {
-          if (selected.WheelId == wheel.WheelId) {
-            shouldChecked = true;
-          }
-        });
-        return shouldChecked;
-      }
-
-      isTireChecked(tire, selectedTires) {
-        var shouldChecked = false;
-        selectedTires.forEach(selected => {
-          if (selected.TireId == tire.TireId) {
-            shouldChecked = true;
-          }
-        });
-        return shouldChecked;
-      }
-
-      isWheelprotectorChecked(wheelprotector, selectedWheelprotector) {
-        var shouldChecked = false;
-        selectedWheelprotector.forEach(selected => {
-          if (selected.WheelprotectorId == wheelprotector.WheelprotectorId) {
-            shouldChecked = true;
-          }
-        });
-        return shouldChecked;
-      }
-
-      handleResponse(data, request) {
-        this.articles = request.response.Articles;
-        this.wheels = request.response.Wheel;
-        this.frontwheels = request.response.FrontWheels;
-        this.hoops = request.response.Hoops;
-        this.tires = request.response.Tires;
-        this.wheelprotectors = request.response.WheelProtector;
-        this._convertToBackendObjects();
-
-        this.ralcolors = request.response.RalColors;
-        this.ralColorCodes = [];
-        var that = this;
-        this.ralcolors.forEach(function (color) {
-          that.ralColorCodes.push(color.HexColorCode);
-        });
-      }
-      onCancel() {
-        this.$$('#addNotesDialog').opened = false;
-      }
-
-      onSaveNotes() {
-        if (!(/^\d+$/.test(this.addition.Discount)) || parseInt(this.addition.Discount) > 99 ||
-          parseInt(this.addition.Discount) < 0) {
-          this.errorToast = this.localize('discount_number_only');
-          return;
-        }
-        if (!(/^\d+$/.test(this.addition.Amount)) || parseInt(this.addition.Amount) > 99 ||
-          parseInt(this.addition.Amount) < 0) {
-          this.errorToast = this.localize('amount_number_only');
-          return;
-        }
-
-        var that = this;
-        if (this.selectedArticle.Type == "Article") {
-          this._saveArticleNote();
-        } else if (this.selectedArticle.Type == "Wheelprotector") {
-          this._saveWheelprotectorNote();
-        } else if (this.selectedArticle.Type == "Tire") {
-          this._saveTireNote();
-        } else if (this.selectedArticle.Type == "Frontwheel") {
-          this._saveFrontwheelNote();
-        } else if (this.selectedArticle.Type == "Hoop") {
-          this._saveHoopNote();
-        } else if (this.selectedArticle.Type == "Wheel") {
-          this._saveWheelNote();
-        } else {
-          this.newWheelchair.Addition = this.addition;
-        }
-        this.$$('#addNotesDialog').opened = false;
-      }
-
-      onSaveError(event) {
-        this.errorToast = event.detail.request.xhr.statusText;
-      }
-
-      handleError(response, data) {
-        if (data.request.status == 403) {
-          this.errorToast = this.localize('access_denied', 'error', data.request.response);
-          this.userdata = "{}";
-          this.loggedIn = false;
-        } else {
-          this.errorToast = this.localize('unknown_error', 'error', data.request.response);
-        }
-      }
-
-      onSave() {
-        if (!this._validateNumbers(this.newWheelchair.SeatWidth) || !this._validateNumbers(this.newWheelchair.FootplateWidth) ||
-          !this._validateNumbers(this.newWheelchair.SeatDepth) || !this._validateNumbers(this.newWheelchair.FrameLength) ||
-          !this._validateNumbers(this.newWheelchair.BackrestHeight) || !this._validateNumbers(this.newWheelchair.SeatHeightFront) ||
-          !this._validateNumbers(this.newWheelchair.SeatHeightBack) || !this._validateNumbers(this.newWheelchair.BalancePoint) ||
-          !this._validateNumbers(this.newWheelchair.LowerLegWidth)) {
-          this.errorToast = this.localize('incorrect_sizes');
-          return;
-        }
-        if (this.newWheelchair.Articles == null || this.newWheelchair.Articles.length == 0) {
-          this.errorToast = this.localize('no_articles_error');
-          return;
-        }
-        if (this.newWheelchair.Frontwheels == null || this.newWheelchair.Frontwheels.length == 0) {
-          this.errorToast = this.localize('no_frontwheel_error');
-          return;
-        }
-        if (this.newWheelchair.Hoops == null || this.newWheelchair.Hoops.length == 0) {
-          this.errorToast = this.localize('no_hoop_error');
-          return;
-        }
-        if (this.newWheelchair.Wheels == null || this.newWheelchair.Wheels.length == 0) {
-          this.errorToast = this.localize('no_wheels_error');
-          return;
-        }
-        if (this.newWheelchair.Tires == null || this.newWheelchair.Tires.length == 0) {
-          this.errorToast = this.localize('no_tires_error');
-          return;
-        }
-        if (this.newWheelchair.Color == null || Object.keys(this.newWheelchair.Color).length == 0) {
-          this.errorToast = this.localize('no_color_error');
-          return;
-        }
-        this.$$('#saveWheelchairs').body = JSON.stringify(this.newWheelchair);
-        this.$$('#saveWheelchairs').generateRequest();
-      }
-
-      toggleSelection(event) {
-        var index = event.target.attributes.getNamedItem('selectedArticle').value
-        if (this.isArticleChecked(this.articles[index], this.newWheelchair.Articles)) {
-          for (var i = this.newWheelchair.Articles.length - 1; i >= 0; --i) {
-            if (this.newWheelchair.Articles[i].ArticleId == this.articles[index].ArticleId) {
-              this.newWheelchair.Articles.splice(i, 1);
-            }
-          }
-        } else {
-          this.newWheelchair.Articles.push(this.articles[index]);
-        }
-        if (this.newWheelchair.Articles.length == 1) {
-          this.$.articles.header =
-            `${this.localize('articles')} : <u style='color:green'> 1 ${this.localize('article')} ${this.localize('selected')}</u>`;
-        } else {
-          this.$.articles.header =
-            `${this.localize('articles')} : <u style='color:green'> ${this.newWheelchair.Articles.length} ${this.localize('articles')} ${this.localize('selected')}</u>`;
-        }
-      }
-
-      frontWheelsCollapse(event) {
-        this.$.frontwheels._toggleOpened(null);
-        var index = event.target.attributes.getNamedItem('selectedFrontwheels').value;
-        this.newWheelchair.Frontwheels = [];
-        this.newWheelchair.Frontwheels.push(this.frontwheels[index]);
-        this.notifyPath('newWheelchair.Frontwheels');
-        this.$.frontwheels.header =
-          `${this.localize('frontwheels')} : <u style='color:green'> ${this.newWheelchair.Frontwheels[0].Description}`;
-      }
-
-      hoopsCollapse(event) {
-        this.$.hoops._toggleOpened(null);
-        var index = event.target.attributes.getNamedItem('selectedHoops').value;
-        this.newWheelchair.Hoops = [];
-        this.newWheelchair.Hoops.push(this.hoops[index]);
-        this.notifyPath('newWheelchair.Hoops');
-        this.$.hoops.header =
-          `${this.localize('hoops')} : <u style='color:green'> ${this.newWheelchair.Hoops[0].Description}`;
-      }
-
-      wheelsCollapse(event) {
-        this.$.wheels._toggleOpened(null);
-        var index = event.target.attributes.getNamedItem('selectedWheels').value;
-        this.newWheelchair.Wheels = [];
-        this.newWheelchair.Wheels.push(this.wheels[index]);
-        this.notifyPath('newWheelchair.Wheels');
-        this.$.wheels.header =
-          `${this.localize('wheels')} : <u style='color:green'> ${this.newWheelchair.Wheels[0].Description}`;
-      }
-
-      tiresCollapse(event) {
-        this.$.tires._toggleOpened(null);
-        var index = event.target.attributes.getNamedItem('selectedTires').value;
-        this.newWheelchair.Tires = [];
-        this.newWheelchair.Tires.push(this.tires[index]);
-        this.notifyPath('newWheelchair.Tires');
-        this.$.tires.header =
-          `${this.localize('tires')} : <u style='color:green'> ${this.newWheelchair.Tires[0].Description}`;
-      }
-
-      wheelProtectorsCollapse(event) {
-        this.$.wheelprotectors._toggleOpened(null);
-        var index = event.target.attributes.getNamedItem('selectedWheelprotectors').value;
-        if (this.newWheelchair.Wheelprotectors && this.newWheelchair.Wheelprotectors.length > 0) {
-          if (this.newWheelchair.Wheelprotectors[0].WheelprotectorId == this.wheelprotectors[index].WheelprotectorId) {
-            this.newWheelchair.Wheelprotectors = [];
-            this.notifyPath('newWheelchair.Wheelprotectors');
-          } else {
-            this.newWheelchair.Wheelprotectors = [];
-            this.newWheelchair.Wheelprotectors.push(this.wheelprotectors[index]);
-          }
-        } else {
-          this.newWheelchair.Wheelprotectors = [];
-          this.newWheelchair.Wheelprotectors.push(this.wheelprotectors[index]);
-        }
-        this.notifyPath('newWheelchair.Wheelprotectors');
-        if (this.newWheelchair.Wheelprotectors.length > 0) {
-          this.$.wheelprotectors.header =
-            `${this.localize('wheel_protectors')} : <u style='color:green'> ${this.newWheelchair.Wheelprotectors[0].Description}`;
-        } else {
-          this.$.wheelprotectors.header =
-            `${this.localize('wheel_protectors')}`;
-        }
-      }
-
-      onWheelchairColorChanged(colorCode) {
-        if (this.ralcolors) {
-          colorCode = colorCode.toUpperCase();
-          var color = this.ralcolors.filter(function (color) {
-            return color.HexColorCode == colorCode;
-          });
-          this.newWheelchair.Color = color[0];
-          this.notifyPath('newWheelchair.Color');
-          this.$.wheelchaircolor._toggleOpened(null);
-          //header dot changes to selected color
-          this.$.wheelchaircolor.header =
-            `${this.localize('color')} : RAL ${this.newWheelchair.Color.ColorCode}
-            <div style='background-color: ${this.newWheelchair.Color.HexColorCode}; width:25px; height:25px; border-radius: 50%; display:inline; float:right; margin-right:20px;'> </div>`;
-          this.showWheelchairPreviewDialog();
-        }
-      }
-
-      onSaveResponse(data, request) {
-        this.succesToast = this.localize('save_wheelchair_success');
-        this.handleGetResponse(data, request);
-      }
-
-      handleGetResponse(data, request) {
-        this.newWheelchair = request.response;
-        this.newWheelchair.OldId = this.newWheelchair.Id;
-        delete this.newWheelchair["Id"];
-        this.newWheelchair.Articles.forEach(function (article) {
-          article.Id = 0;
-        });
-        this.newWheelchair.Frontwheels.forEach(function (fwheel) {
-          fwheel.Id = 0;
-        });
-        this.newWheelchair.Hoops.forEach(function (hoop) {
-          hoop.Id = 0;
-        });
-        this.newWheelchair.Tires.forEach(function (tire) {
-          tire.Id = 0;
-        });
-        this.newWheelchair.Wheelprotectors.forEach(function (wp) {
-          wp.Id = 0;
-        });
-        this.newWheelchair.Wheels.forEach(function (wheel) {
-          wheel.Id = 0;
-        });
-        this.wheelchairColor = this.newWheelchair.Color.HexColorCode;
-        if (this.newWheelchair.Articles.length == 1) {
-          this.$.articles.header =
-            `${this.localize('articles')} : <u style='color:green'> 1 ${this.localize('article')} ${this.localize('selected')}</u>`;
-        } else {
-          this.$.articles.header =
-            `${this.localize('articles')} : <u style='color:green'> ${this.newWheelchair.Articles.length} ${this.localize('articles')} ${this.localize('selected')}</u>`;
-        }
-        this.$.frontwheels.header =
-          `${this.localize('frontwheels')} : <u style='color:green'> ${this.newWheelchair.Frontwheels[0].Frontwheel.Description}`;
-        this.$.hoops.header =
-          `${this.localize('hoops')} : <u style='color:green'> ${this.newWheelchair.Hoops[0].Hoop.Description}`;
-        this.$.wheels.header =
-          `${this.localize('wheels')} : <u style='color:green'> ${this.newWheelchair.Wheels[0].Wheel.Description}`;
-        this.$.tires.header =
-          `${this.localize('tires')} : <u style='color:green'> ${this.newWheelchair.Tires[0].Tire.Description}`;
-        if (this.newWheelchair.Wheelprotectors && this.newWheelchair.Wheelprotectors.length > 0) {
-          this.$.wheelprotectors.header =
-            `${this.localize('wheel_protectors')} : <u style='color:green'> ${this.newWheelchair.Wheelprotectors[0].WheelProtector.Description}`;
-        }
-      }
-
-
-      userParams(userdata) {
-        if (userdata == null || userdata == "") {
-          return null;
-        }
-        var user = JSON.parse(userdata);
-        if (Object.keys(user).length == 0) {
-          return null;
-        }
-        var requestBody = {
-          Username: user.username,
-          Token: user.accesstoken
-        };
-        return requestBody;
-      }
-
-      addArticleNote(event) {
-        var that = this;
-        this.addition = {};
-        var product = JSON.parse(event.target.getAttribute('product'));
-        var containsArticle = false;
-        this.newWheelchair.Articles.forEach(function (article) {
-          if (article.ArticleId == product.ArticleId) {
-            containsArticle = true;
-            if (article.Addition) {
-              that.addition = article.Addition;
-            }
-          }
-        });
-
-        if (containsArticle) {
-          product.Type = "Article";
-          this.selectedArticle = product;
-          this.$$('#addNotesDialog').opened = true;
-        } else {
-          this.errorToast = this.localize('add_product_before_note');
-        }
-      }
-
-      addWheelprotectorNote(event) {
-        var that = this;
-        this.addition = {};
-        var product = JSON.parse(event.target.getAttribute('product'));
-        var containsArticle = false;
-        this.newWheelchair.Wheelprotectors.forEach(function (protector) {
-          if (protector.WheelprotectorId == product.WheelprotectorId) {
-            containsArticle = true;
-            if (protector.Addition) {
-              that.addition = protector.Addition;
-            }
-          }
-        });
-
-        if (containsArticle) {
-          product.Type = "Wheelprotector";
-          this.selectedArticle = product;
-          this.$$('#addNotesDialog').opened = true;
-        } else {
-          this.errorToast = this.localize('add_product_before_note');
-        }
-      }
-
-      addFrontwheelNote(event) {
-        var that = this;
-        this.addition = {};
-        var product = JSON.parse(event.target.getAttribute('product'));
-        var containsArticle = false;
-        this.newWheelchair.Frontwheels.forEach(function (frontwheel) {
-          if (frontwheel.FrontWheelId == product.FrontWheelId) {
-            containsArticle = true;
-            if (frontwheel.Addition) {
-              that.addition = frontwheel.Addition;
-            }
-          }
-        });
-
-        if (containsArticle) {
-          product.Type = "Frontwheel";
-          this.selectedArticle = product;
-          this.$$('#addNotesDialog').opened = true;
-        } else {
-          this.errorToast = this.localize('add_product_before_note');
-        }
-      }
-
-      addHoopNote(event) {
-        var that = this;
-        this.addition = {};
-        var product = JSON.parse(event.target.getAttribute('product'));
-        var containsArticle = false;
-        this.newWheelchair.Hoops.forEach(function (hoop) {
-          if (hoop.HoopId == product.HoopId) {
-            containsArticle = true;
-            if (hoop.Addition) {
-              that.addition = hoop.Addition;
-            }
-          }
-        });
-
-        if (containsArticle) {
-          product.Type = "Hoop";
-          this.selectedArticle = product;
-          this.$$('#addNotesDialog').opened = true;
-        } else {
-          this.errorToast = this.localize('add_product_before_note');
-        }
-      }
-
-      addWheelNote(event) {
-        var that = this;
-        this.addition = {};
-        var product = JSON.parse(event.target.getAttribute('product'));
-        var containsArticle = false;
-        this.newWheelchair.Wheels.forEach(function (wheel) {
-          if (wheel.WheelId == product.WheelId) {
-            containsArticle = true;
-            if (wheel.Addition) {
-              that.addition = wheel.Addition;
-            }
-          }
-        });
-
-        if (containsArticle) {
-          product.Type = "Wheel";
-          this.selectedArticle = product;
-          this.$$('#addNotesDialog').opened = true;
-        } else {
-          this.errorToast = this.localize('add_product_before_note');
-        }
-      }
-
-      addTireNote(event) {
-        var that = this;
-        this.addition = {};
-        var product = JSON.parse(event.target.getAttribute('product'));
-        var containsArticle = false;
-        this.newWheelchair.Tires.forEach(function (tire) {
-          if (tire.TireId == product.TireId) {
-            containsArticle = true;
-            if (tire.Addition) {
-              that.addition = tire.Addition;
-            }
-          }
-        });
-
-        if (containsArticle) {
-          product.Type = "Tire";
-          this.selectedArticle = product;
-          this.$$('#addNotesDialog').opened = true;
-        } else {
-          this.errorToast = this.localize('add_product_before_note');
-        }
-      }
-
-      _saveArticleNote() {
-        var that = this;
-        this.newWheelchair.Articles.forEach(function (article) {
-          if (article.ArticleId == that.selectedArticle.ArticleId) {
-            article.Addition = that.addition;
-          }
-        });
-      }
-
-      _saveWheelprotectorNote() {
-        var that = this;
-        this.newWheelchair.Wheelprotectors.forEach(function (wheelprotector) {
-          if (wheelprotector.WheelprotectorId == that.selectedArticle.WheelprotectorId) {
-            wheelprotector.Addition = that.addition;
-          }
-        });
-      }
-
-
-      _saveFrontwheelNote() {
-        var that = this;
-        this.newWheelchair.Frontwheels.forEach(function (frontwheel) {
-          if (frontwheel.FrontWheelId == that.selectedArticle.FrontWheelId) {
-            frontwheel.Addition = that.addition;
-          }
-        });
-      }
-
-      _saveHoopNote() {
-        var that = this;
-        this.newWheelchair.Hoops.forEach(function (hoop) {
-          if (hoop.HoopId == that.selectedArticle.HoopId) {
-            hoop.Addition = that.addition;
-          }
-        });
-      }
-
-      _saveWheelNote() {
-        var that = this;
-        this.newWheelchair.Wheels.forEach(function (wheel) {
-          if (wheel.WheelId == that.selectedArticle.WheelId) {
-            wheel.Addition = that.addition;
-          }
-        });
-      }
-
-      _saveTireNote() {
-        var that = this;
-        this.newWheelchair.Tires.forEach(function (tire) {
-          if (tire.TireId == that.selectedArticle.TireId) {
-            tire.Addition = that.addition;
-          }
-        });
-      }
-
-      _onPageChanged() {
-        if (this.page == "wheelchair-config") {
-          if (this.userdata != "" && this.userdata != undefined) {
-            this.$.getArticles.generateRequest();
-            if (this.wheelchairId != 0 && this.wheelchairId != null && this.wheelchairId != undefined) {
-              this.$$('#getwheelchair').generateRequest();
-            } else if (this.customerId != 0 && this.customerId != null && this.customerId != undefined) {
-              this.newWheelchair.CustomerId = this.customerId;
-            }
-          }
-        } else {
-          this.newWheelchair = {
-            Addition: [],
-            Articles: [],
-            Frontwheels: [],
-            Hoops: [],
-            Wheels: [],
-            Tires: [],
-            Wheelprotectors: [],
-            Color: {},
-            OldId: 0
-          };
-          this.customerId = 0;
-          this.wheelchairId = 0;
-          this.$.frontwheels.header = `${this.localize('frontwheels')}`;
-          this.$.hoops.header = `${this.localize('hoops')}`;
-          this.$.wheels.header = `${this.localize('wheels')}`;
-          this.$.tires.header = `${this.localize('tires')}`;
-          this.$.wheelprotectors.header = `${this.localize('wheel_protectors')}`;
-          this.$.wheelchaircolor.header = `${this.localize('color')}`;
-          this.$.articles.header = `${this.localize('articles')}`;
-        }
-      }
-
-      _onLoadingChanged(newValue) {
-        if (newValue) {
-          this.$$('#loadingDialog').opened = true;
-        } else {
-          this.$$('#loadingDialog').opened = false;
-        }
-      }
-
-      _convertToBackendObjects() {
-        this.articles.forEach(function (article) {
-          article.ArticleId = article.Id;
-          delete article["Id"];
-        });
-        this.wheelprotectors.forEach(function (wheelprotector) {
-          wheelprotector.WheelprotectorId = wheelprotector.Id;
-          delete wheelprotector["Id"];
-        });
-        this.tires.forEach(function (tire) {
-          tire.TireId = tire.Id;
-          delete tire["Id"];
-        });
-        this.frontwheels.forEach(function (frontwheel) {
-          frontwheel.FrontWheelId = frontwheel.Id;
-          delete frontwheel["Id"];
-        });
-        this.hoops.forEach(function (hoop) {
-          hoop.HoopId = hoop.Id;
-          delete hoop["Id"];
-        });
-        this.wheels.forEach(function (wheel) {
-          wheel.WheelId = wheel.Id;
-          delete wheel["Id"];
-        });
-      }
-      
-      _validateNumbers(number) {
-        if (!(/^\d+$/.test(number)) || parseInt(number) > 9999 ||
-          parseInt(number) < 0) {
-          return false;
-        }
-
-        return true;
       }
     }
     window.customElements.define(WheelchairConfigPage.is, WheelchairConfigPage);
