@@ -1,0 +1,38 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+
+<dom-module id="tns-404-page">
+  <template>
+    <style>
+      :host {
+        display: block;
+
+        padding: 10px 20px;
+      }
+    </style>
+
+    <brum-global-variable key="language" value="{{language}}"></brum-global-variable>
+
+    [[localize('hit_404_error')]]
+    <a href="[[rootPath]]/#/wheelchairs">[[localize('go_to_homepage')]]</a>
+  </template>
+
+  <script>
+    class Tns404Page extends Polymer.mixinBehaviors([Polymer.AppLocalizeBehavior], Polymer.Element) {
+      static get is() {
+        return 'tns-404-page';
+      }
+      static get properties() {
+        return {
+          rootPath: String,
+        };
+      }
+
+      connectedCallback() {
+        super.connectedCallback();
+        this.loadResources(this.resolveUrl('../../locales.json'));
+      }
+    }
+
+    window.customElements.define(Tns404Page.is, Tns404Page);
+  </script>
+</dom-module>

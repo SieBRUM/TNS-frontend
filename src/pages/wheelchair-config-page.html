@@ -1,0 +1,1442 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="../../bower_components/brum-global-variable/brum-global-variable.html">
+<link rel="import" href="../../bower_components/app-storage/app-localstorage/app-localstorage-document.html">
+<link rel="import" href="../shared-styles.html">
+<link rel="import" href="../../bower_components/app-localize-behavior/app-localize-behavior.html">
+<link rel="import" href="../../bower_components/iron-icons/editor-icons.html">
+<link rel="import" href="../../bower_components/vaadin-dialog/vaadin-dialog.html">
+<link rel="import" href="../../bower_components/paper-checkbox/paper-checkbox.html">
+<link rel="import" href="../../bower_components/paper-collapse-item/paper-collapse-item.html">
+<link rel="import" href="../../bower_components/paper-collapse-item/paper-collapse-group.html">
+<link rel="import" href="../../bower_components/l2t-paper-color/l2t-paper-color.html">
+<link rel="import" href="../../bower_components/paper-radio-button/paper-radio-button.html">
+<link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../../bower_components/paper-spinner/paper-spinner-lite.html">
+<script src="../../three.js"></script>
+<script src="../../three.min.js"></script>
+
+<dom-module id="wheelchair-config-page">
+  <template>
+    <style include="shared-styles">
+      :host {
+        display: block;
+
+        padding: 10px;
+      }
+
+      .center {
+        text-align: center;
+      }
+
+      .dialog {
+        width: 80vh;
+      }
+
+      .pull-right {
+        float: right;
+      }
+
+      paper-button.preview {
+        background-color: rgb(31, 121, 224);
+        color: white;
+      }
+
+      paper-button.confirm {
+        background-color: #28A745;
+        color: white;
+      }
+
+      paper-button.dismiss {
+        color: #ff0033;
+      }
+
+      paper-radio-button {
+        padding: 0;
+      }
+
+      paper-checkbox {
+        padding: 0;
+      }
+
+      .collapsebox {
+        width: 60%;
+        float: right;
+        align-content: flex-end;
+        margin-right: 20px;
+        margin-left: 100px;
+        padding: 5px;
+      }
+
+      .inner {
+        position: absolute;
+      }
+
+      @media only screen and (max-width: 1170px) {
+        .card {
+          flex-direction: column;
+        }
+        .input {
+          width: 100%;
+          float: left;
+        }
+        .collapsebox {
+          margin-left: -10px;
+          width: 100%;
+        }
+        .wheelchairDimImg {
+          width: 100%;
+        }
+      }
+
+      .card {
+        margin: 24px;
+        padding: 16px;
+        color: #757575;
+        border-radius: 5px;
+        background-color: #fff;
+        box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12), 0 3px 1px -2px rgba(0, 0, 0, 0.2);
+        -webkit-column-count: 3;
+        -moz-column-count: 3;
+        column-count: 3;
+        column-gap: 10px;
+        display: flex;
+      }
+      .container {
+        position: relative;
+        color: white;
+      }
+
+      .render {
+        position: absolute;
+      }
+    </style>
+    <brum-global-variable key="successtoast" value="{{succesToast}}"></brum-global-variable>
+    <brum-global-variable key="errortoast" value="{{errorToast}}"></brum-global-variable>
+    <brum-global-variable key="loggedin" value="{{loggedIn}}"></brum-global-variable>
+    <brum-global-variable key="language" value="{{language}}"></brum-global-variable>
+    <brum-global-variable key="page" value="{{page}}"></brum-global-variable>
+    <brum-global-variable key="wheelchairid" value="{{wheelchairId}}"></brum-global-variable>
+    <brum-global-variable key="customerid" value="{{customerId}}"></brum-global-variable>
+
+    <app-localstorage-document key="userdata" data="{{userdata}}"></app-localstorage-document>
+
+    <iron-ajax id="getArticles" url="/backend/api/wheelchair/products" handle-as="json" on-error="handleError" on-response="handleResponse"
+      headers="[[userParams(userdata)]]" loading="{{isLoading}}">
+    </iron-ajax>
+    <iron-ajax id="getwheelchair" url="/backend/api/wheelchair/{{wheelchairId}}" handle-as="json" on-error="handleGetError" on-response="handleGetResponse"
+      headers="[[userParams(userdata)]]" loading="{{isLoading}}">
+    </iron-ajax>
+    <iron-ajax id="saveWheelchairs" url="/backend/api/wheelchair" handle-as="json" on-response="onSaveResponse" on-error="onSaveError"
+      loading="{{isLoading}}" headers="[[userParams(userdata)]]" method="POST" with-credentials content-type="application/json"></iron-ajax>
+
+    <vaadin-dialog id="addNotesDialog" no-close-on-outside-click>
+      <template>
+        <div class="dialog">
+          <h1>{{localize('add_addition')}} ({{selectedArticle.Description}})</h1>
+          <paper-textarea label="{{localize('comment')}}" value="{{addition.Comment}}"></paper-textarea>
+          <paper-input label="{{localize('discount')}}" value="{{addition.Discount}}" auto-validate pattern="[0-9]*" type="string"
+            maxlength="2"></paper-input>
+          <paper-input label="{{localize('amount')}}" value="{{addition.Amount}}" auto-validate pattern="[0-9]*" type="string" maxlength="2"></paper-input>
+          <br>
+          <paper-button on-tap="onCancel" class="pull-right dismiss">{{localize('cancel')}}</paper-button>
+          <paper-button on-tap="onSaveNotes" class="confirm">{{localize('save')}}</paper-button>
+          <br>
+        </div>
+      </template>
+    </vaadin-dialog>
+
+    <vaadin-dialog id="loadingDialog" no-close-on-esc no-close-on-outside-click>
+      <template>
+        <div style="text-align: center;">
+          {{localize('loading')}}...
+          <br>
+          <paper-spinner-lite active></paper-spinner-lite>
+        </div>
+      </template>
+    </vaadin-dialog>
+
+    <div class="card">
+      <div>
+        <div class="render" id="renderCanvas">
+          <canvas class="render" id="canvas" style="width:600; height: 350px"></canvas>
+        </div>
+        <div style="column-count: 3; margin-bottom: 20px; margin-top:400px;">
+          <paper-input id="SeatWidth" label="{{localize('seat_width')}}" value="{{newWheelchair.SeatWidth}}" on-change="onInputChange"
+            type="number"></paper-input>
+          <paper-input id="FootplateWidth" label="{{localize('footplate_width')}}" value="{{newWheelchair.FootplateWidth}}" on-change="onInputChange"
+            type="number"></paper-input>
+          <paper-input id="SeatDepth" label="{{localize('seat_depth')}}" value="{{newWheelchair.SeatDepth}}" on-change="onInputChange"
+            type="number"></paper-input>
+          <paper-input id="FrameLength" label="{{localize('frame_length')}}" value="{{newWheelchair.FrameLength}}" on-change="onInputChange"
+            type="number"></paper-input>
+          <paper-input id="BackrestHeight" label="{{localize('backrest_height')}}" value="{{newWheelchair.BackrestHeight}}" on-change="onInputChange"
+            type="number"></paper-input>
+          <paper-input id="SeatheightFront" label="{{localize('seat_height_front')}}" value="{{newWheelchair.SeatHeightFront}}" on-change="onInputChange"
+            type="number"></paper-input>
+          <paper-input id="SeatheightBack" label="{{localize('seat_height_back')}}" value="{{newWheelchair.SeatHeightBack}}" on-change="onInputChange"
+            type="number"></paper-input>
+          <paper-input id="BalancePoint" label="{{localize('balance_point')}}" value="{{newWheelchair.BalancePoint}}" on-change="onInputChange"
+            type="number"></paper-input>
+          <paper-input id="LowerLegWidth" label="{{localize('lowerleg_width')}}" value="{{newWheelchair.LowerLegWidth}}" on-change="onInputChange"
+            type="number"></paper-input>
+        </div>
+        <paper-button class="confirm" style="float:right" on-tap="onSave">{{localize('save')}}</paper-button>
+        <paper-button class="preview" on-tap="showWheelchairPreviewDialog" style="float:right">{{localize('preview')}}</paper-button>
+      </div>
+      <div class="collapsebox">
+        <paper-collapse-item id="articles" class="styled" header="{{localize('articles')}}">
+          <br>
+          <template is="dom-repeat" id="articleList" items="{{articles}}">
+            <paper-checkbox on-tap="toggleSelection" selectedArticle$="[[index]]" checked="{{isArticleChecked(item, newWheelchair.Articles)}}">[[item.Description]]
+              <b>€[[item.Price]]</b>
+            </paper-checkbox>
+            <paper-icon-button icon="editor:mode-edit" product$="[[item]]" on-tap="addArticleNote"></paper-icon-button>
+            <br/>
+          </template>
+        </paper-collapse-item>
+
+        <paper-collapse-item id="frontwheels" header="{{localize('frontwheels')}}">
+          <paper-radio-group>
+            <template is="dom-repeat" items="[[frontwheels]]">
+              <paper-radio-button selectedFrontwheels$="[[index]]" name="{{item.Description}}" on-tap="frontWheelsCollapse" checked="{{isFrontwheelChecked(item, newWheelchair.Frontwheels)}}">[[item.Description]]
+                <b>€[[item.Price]]</b>
+              </paper-radio-button>
+              <paper-icon-button icon="editor:mode-edit" product$="[[item]]" selectedFrontwheels$="[[index]]" on-tap="addFrontwheelNote"></paper-icon-button>
+              <br/>
+            </template>
+          </paper-radio-group>
+        </paper-collapse-item>
+
+        <paper-collapse-item id="hoops" header="{{localize('hoops')}}">
+          <paper-radio-group>
+            <template is="dom-repeat" items="[[hoops]]">
+              <paper-radio-button selectedHoops$="[[index]]" name="{{item.Description}}" on-tap="hoopsCollapse" checked="{{isHoopChecked(item, newWheelchair.Hoops)}}">[[item.Description]]
+                <b>€[[item.Price]]</b>
+              </paper-radio-button>
+              <paper-icon-button icon="editor:mode-edit" product$="[[item]]" selectedHoops$="[[index]]" on-tap="addHoopNote"></paper-icon-button>
+              <br />
+            </template>
+          </paper-radio-group>
+        </paper-collapse-item>
+
+        <paper-collapse-item id="wheels" header="{{localize('wheels')}}">
+          <paper-radio-group>
+            <template is="dom-repeat" items="[[wheels]]">
+              <paper-radio-button selectedWheels$="[[index]]" name="{{item.Description}}" on-tap="wheelsCollapse" checked="{{isWheelChecked(item, newWheelchair.Wheels)}}">[[item.Description]]
+                <b>€[[item.Price]]</b>
+              </paper-radio-button>
+              <paper-icon-button icon="editor:mode-edit" product$="[[item]]" selectedWheels$="[[index]]" on-tap="addWheelNote"></paper-icon-button>
+              <br />
+            </template>
+          </paper-radio-group>
+        </paper-collapse-item>
+
+        <paper-collapse-item id="tires" header="{{localize('tires')}}">
+          <paper-radio-group>
+            <template is="dom-repeat" items="[[tires]]">
+              <paper-radio-button selectedTires$="[[index]]" name="{{item.Description}}" on-tap="tiresCollapse" checked="{{isTireChecked(item, newWheelchair.Tires)}}">[[item.Description]]
+                <b>€[[item.Price]]</b>
+              </paper-radio-button>
+              <paper-icon-button icon="editor:mode-edit" product$="[[item]]" selectedTires$="[[index]]" on-tap="addTireNote"></paper-icon-button>
+              <br/>
+            </template>
+          </paper-radio-group>
+        </paper-collapse-item>
+
+        <paper-collapse-item id="wheelprotectors" header="{{localize('wheel_protectors')}}" allow-empty-selection>
+          <paper-radio-group>
+            <template is="dom-repeat" items="[[wheelprotectors]]">
+              <paper-radio-button selectedWheelprotectors$="[[index]]" name="{{item.Description}}" on-tap="wheelProtectorsCollapse" checked="{{isWheelprotectorChecked(item, newWheelchair.Wheelprotectors)}}">[[item.Description]]
+                <b>€[[item.Price]]</b>
+              </paper-radio-button>
+              <paper-icon-button icon="editor:mode-edit" product$="[[item]]" selectedWheelprotectors$="[[index]]" on-tap="addWheelprotectorNote"></paper-icon-button>
+              <br/>
+            </template>
+          </paper-radio-group>
+        </paper-collapse-item>
+
+        <paper-collapse-item id="wheelchaircolor" header="{{localize('color')}}">
+          <l2t-paper-color value="{{wheelchairColor}}" colors='{{ralColorCodes}}' hide-advanced></l2t-paper-color>
+        </paper-collapse-item>
+      </div>
+    </div>
+  </template>
+
+  <script>
+    class WheelchairConfigPage extends Polymer.mixinBehaviors([Polymer.AppLocalizeBehavior], Polymer.Element) {
+      static get is() {
+        return 'wheelchair-config-page';
+      }
+      static get properties() {
+        return {
+          language: {
+            type: String
+          },
+          articles: {
+            type: Array
+          },
+          wheels: {
+            type: Array
+          },
+          frontwheels: {
+            type: Array
+          },
+          hoops: {
+            type: Array
+          },
+          tires: {
+            type: Array
+          },
+          wheelprotector: {
+            type: Array
+          },
+          ralcolors: {
+            type: Array
+          },
+          ralColorCodes: {
+            type: Array
+          },
+          newWheelchair: {
+            value: {
+              Addition: [],
+              Articles: [],
+              Frontwheels: [],
+              Hoops: [],
+              Wheels: [],
+              Tires: [],
+              Wheelprotectors: [],
+              Color: {}
+            },
+            type: Object,
+            observer: 'showWheelchairPreviewDialog'
+          },
+          selectedArticle: {
+            value: {},
+            type: Object
+          },
+          addition: {
+            value: {},
+            type: Object
+          },
+          wheelchairColor: {
+            observer: 'onWheelchairColorChanged'
+          },
+          userdata: {
+            type: String
+          },
+          page: {
+            type: String,
+            observer: '_onPageChanged'
+          },
+          isLoading: {
+            observer: "_onLoadingChanged"
+          }
+        };
+      }
+
+      connectedCallback() {
+        super.connectedCallback();
+        this.loadResources(this.resolveUrl('../../locales.json'));
+      }
+      
+      onInputChange() {
+        var canvas = this.$$('canvas');
+        var ctx = canvas.getContext("2d");
+        canvas.width = canvas.getBoundingClientRect().width;
+        canvas.height = canvas.getBoundingClientRect().height;
+        ctx.font = "14px Roboto";
+        ctx.fillText(this.$.SeatWidth.value, 132, 96);
+        ctx.fillText(this.$.FootplateWidth.value, 135, 340);
+        ctx.fillText(this.$.SeatDepth.value, 420, 96);
+        ctx.fillText(this.$.BackrestHeight.value, 530, 150);
+        ctx.fillText(this.$.FrameLength.value, 380, 325);
+        ctx.fillText(this.$.SeatheightFront.value, 255, 270);
+        ctx.fillText(this.$.SeatheightBack.value, 540, 270);
+        ctx.fillText(this.$.BalancePoint.value, 460, 261);
+        ctx.fillText(this.$.LowerLegWidth.value, 275, 220);
+      }
+
+      showWheelchairPreviewDialog() {
+        //gets div element
+        var div = this.$$('#renderCanvas');
+        if (div.children.length > 1)
+          div.removeChild(div.lastChild);
+
+        //renderer
+        var renderer = new THREE.WebGLRenderer({
+          alpha: true
+        });
+        renderer.setSize(600, 334);
+
+        //add canvas to div element
+        div.appendChild(renderer.domElement);
+
+        //camera
+        var camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 500);
+        camera.position.set(0,
+          0, 100);
+        camera.lookAt(new THREE.Vector3(0, 0, 0));
+
+        var material = new THREE.LineBasicMaterial({
+          color: 0x000000,
+        });
+        var line2 = new THREE.LineBasicMaterial({
+          color: 0xff0000,
+        });
+
+        var scene = new THREE.Scene();
+
+        //initializing all geometries
+
+        var group = new THREE.Group();
+
+        var wheel1 = new THREE.EllipseCurve(44, -18, 25, 21, 0, 2 * Math.PI, false, 0);
+        var points = wheel1.getPoints(50);
+        var wheelbuffer1 = new THREE.BufferGeometry().setFromPoints(points);
+
+        var wheel2 = new THREE.EllipseCurve(44, -18, 22, 18, 0, 2 * Math.PI, false, 0);
+        var points = wheel2.getPoints(50);
+        var wheelbuffer2 = new THREE.BufferGeometry().setFromPoints(points);
+
+        var wheelline1 = new THREE.Line(wheelbuffer1, material);
+        var wheelline2 = new THREE.Line(wheelbuffer2, material);
+
+        scene.add(wheelline1);
+        scene.add(wheelline2);
+
+        function addShape(shape, color, x, y, z, rx, ry, rz, s) {
+
+          // flat shape
+          var geometry = new THREE.ShapeGeometry(shape);
+          var material = new THREE.MeshBasicMaterial({
+            color: color,
+            overdraw: 0.5
+          });
+
+          var mesh = new THREE.Mesh(geometry, material);
+          mesh.position.set(x, y, z);
+          mesh.rotation.set(rx, ry, rz);
+          mesh.scale.set(s, s, s);
+          group.add(mesh);
+
+          // line
+
+          var points = shape.getPoints();
+          var geometry = new THREE.BufferGeometry().setFromPoints(points);
+
+          var material = new THREE.LineBasicMaterial({
+            linewidth: 10,
+            color: 0x333333
+          });
+
+          var line = new THREE.Line(geometry, material);
+          line.position.set(x, y, z);
+          line.rotation.set(rx, ry, rz);
+          line.scale.set(s, s, s);
+          group.add(line);
+
+        }
+
+        var backrestfrontview = [];
+        var backrestfrontview2 = [];
+        var wheelaxispipe = [];
+        var seatheightfrontview = [];
+        var seatbar = [];
+        var footplateframe = [];
+        var frontwheelleft = [];
+        var frontwheelright = [];
+        var framesideview = [];
+        var frontwheelsideview = [];
+        var frontwheelsideview2 = [];
+        var pushhandle = [];
+
+        backrestfrontview.push(
+          new THREE.Vector3(-240, 60, 0),
+          new THREE.Vector3(-240, -87, 0),
+          new THREE.Vector3(-230, -87, 0),
+          new THREE.Vector3(-230, -87, 0),
+          new THREE.Vector3(-230, 60, 0),
+          new THREE.Vector3(-240, 60, 0)
+        );
+        backrestfrontview2.push(
+          new THREE.Vector3(-120, 60, 0),
+          new THREE.Vector3(-120, -87, 0),
+          new THREE.Vector3(-107, -87, 0),
+          new THREE.Vector3(-107, -87, 0),
+          new THREE.Vector3(-107, 60, 0),
+          new THREE.Vector3(-120, 60, 0)
+        );
+
+        wheelaxispipe.push(
+          new THREE.Vector3(-89, -65, 0),
+          new THREE.Vector3(-174, -73, 0),
+          new THREE.Vector3(-259, -65, 0),
+          new THREE.Vector3(-259, -69, 0),
+          new THREE.Vector3(-174, -80, 0),
+          new THREE.Vector3(-89, -69, 0),
+          new THREE.Vector3(-89, -65, 0),
+        );
+
+        seatheightfrontview.push(
+          new THREE.Vector3(-230, 40, 0),
+          new THREE.Vector3(-120, 40, 0),
+          new THREE.Vector3(-120, 30, 0),
+          new THREE.Vector3(-230, 30, 0));
+
+        seatbar.push(
+          new THREE.Vector3(-230, -23, 0),
+          new THREE.Vector3(-200, -40, 0),
+          new THREE.Vector3(-150, -40, 0),
+          new THREE.Vector3(-120, -23, 0),
+          new THREE.Vector3(-120, -32, 0),
+          new THREE.Vector3(-150, -50, 0),
+          new THREE.Vector3(-200, -50, 0),
+          new THREE.Vector3(-230, -32, 0));
+
+        footplateframe.push(
+          new THREE.Vector3(-230, -23, 0),
+          new THREE.Vector3(-210, -23, 0),
+          new THREE.Vector3(-207, -29, 0),
+          new THREE.Vector3(-207, -137, 0),
+          new THREE.Vector3(-140, -137, 0),
+          new THREE.Vector3(-140, -29, 0),
+          new THREE.Vector3(-137, -23, 0),
+          new THREE.Vector3(-120, -23, 0),
+          new THREE.Vector3(-120, -35, 0),
+          new THREE.Vector3(-129, -35, 0),
+          new THREE.Vector3(-129, -145, 0),
+          new THREE.Vector3(-135, -148, 0),
+          new THREE.Vector3(-212, -148, 0),
+          new THREE.Vector3(-220, -140, 0),
+          new THREE.Vector3(-220, -35, 0),
+          new THREE.Vector3(-230, -35, 0), );
+
+        frontwheelleft.push(
+          new THREE.Vector3(-220, -120, 0),
+          new THREE.Vector3(-225, -125, 0),
+          new THREE.Vector3(-225, -128, 0),
+          new THREE.Vector3(-233, -128, 0),
+          new THREE.Vector3(-233, -124, 0),
+          new THREE.Vector3(-236, -124, 0),
+          new THREE.Vector3(-236, -100, 0),
+          new THREE.Vector3(-220, -95, 0));
+
+        frontwheelright.push(
+          new THREE.Vector3(-130, -120, 0),
+          new THREE.Vector3(-123, -123, 0),
+          new THREE.Vector3(-123, -129, 0),
+          new THREE.Vector3(-115, -129, 0),
+          new THREE.Vector3(-115, -123, 0),
+          new THREE.Vector3(-112, -123, 0),
+          new THREE.Vector3(-112, -100, 0),
+          new THREE.Vector3(-130, -95, 0),
+          new THREE.Vector3(-130, -120, 0));
+
+        framesideview.push(
+          new THREE.Vector3(0, -120, 0),
+          new THREE.Vector3(10, -70, 0),
+          new THREE.Vector3(18, -50, 0),
+          new THREE.Vector3(23, -40, 0),
+          new THREE.Vector3(27, -35, 0),
+          new THREE.Vector3(35, -30, 0),
+          new THREE.Vector3(40, -30, 0),
+          new THREE.Vector3(55, -28, 0),
+          new THREE.Vector3(200, -28, 0),
+          new THREE.Vector3(200, 60, 0),
+          new THREE.Vector3(213, 60, 0),
+          new THREE.Vector3(213, -40, 0),
+          new THREE.Vector3(55, -40, 0),
+          new THREE.Vector3(40, -45, 0),
+          new THREE.Vector3(36, -50, 0),
+          new THREE.Vector3(32, -55, 0),
+          new THREE.Vector3(15, -120, 0),
+          new THREE.Vector3(11, -125, 0),
+          new THREE.Vector3(8, -125, 0),
+          new THREE.Vector3(3, -124, 0),
+          new THREE.Vector3(1, -122, 0)
+        );
+
+        frontwheelsideview.push(
+          new THREE.Vector3(15, -83, 0),
+          new THREE.Vector3(30, -90, 0),
+          new THREE.Vector3(30, -105, 0),
+          new THREE.Vector3(15, -100, 0)
+        );
+
+        frontwheelsideview2.push(
+          new THREE.Vector3(29, -84, 0),
+          new THREE.Vector3(29, -113, 0),
+          new THREE.Vector3(40, -113, 0),
+          new THREE.Vector3(40, -84, 0),
+        );
+
+        pushhandle.push(
+          new THREE.Vector3(213, 28, 0),
+          new THREE.Vector3(240, 28, 0),
+          new THREE.Vector3(243, 24, 0),
+          new THREE.Vector3(240, 20, 0),
+          new THREE.Vector3(213, 20, 0),
+        );
+
+        var backrestfrontviewShape = new THREE.Shape(backrestfrontview);
+        var backrestfrontviewShape2 = new THREE.Shape(backrestfrontview2);
+        var wheelaxispipeShape = new THREE.Shape(wheelaxispipe);
+        var backseatpipeShape = new THREE.Shape(seatheightfrontview);
+        var seatbarShape = new THREE.Shape(seatbar);
+        var frontviewframeShape = new THREE.Shape(footplateframe);
+        var frontwheelleftShape = new THREE.Shape(frontwheelleft);
+        var frontwheelrightShape = new THREE.Shape(frontwheelright);
+        var framesideviewShape = new THREE.Shape(framesideview);
+        var frontwheelsideviewShape = new THREE.Shape(frontwheelsideview);
+        var frontwheelsideviewShape2 = new THREE.Shape(frontwheelsideview2);
+        var pushhandleShape = new THREE.Shape(pushhandle);
+
+        addShape(backseatpipeShape, this.newWheelchair.Color.HexColorCode, 0, 0, 0, 0, 0, 0, 0.25);
+        addShape(wheelaxispipeShape, this.newWheelchair.Color.HexColorCode, 0, 0, 0, 0, 0, 0, 0.25);
+        addShape(backrestfrontviewShape, this.newWheelchair.Color.HexColorCode, 0, 0, 0, 0, 0, 0, 0.25);
+        addShape(backrestfrontviewShape2, this.newWheelchair.Color.HexColorCode, 0, 0, 0, 0, 0, 0, 0.25);
+        addShape(seatbarShape, this.newWheelchair.Color.HexColorCode, 0, 0, 0, 0, 0, 0, 0.25);
+        addShape(frontwheelrightShape, this.newWheelchair.Color.HexColorCode, 0, 0, 0, 0, 0, 0, 0.25);
+        addShape(frontwheelleftShape, this.newWheelchair.Color.HexColorCode, 0, 0, 0, 0, 0, 0, 0.25);
+        addShape(frontviewframeShape, this.newWheelchair.Color.HexColorCode, 0, 0, 0, 0, 0, 0, 0.25);
+        addShape(framesideviewShape, this.newWheelchair.Color.HexColorCode, 0, 0, 0, 0, 0, 0, 0.25);
+        addShape(frontwheelsideviewShape, this.newWheelchair.Color.HexColorCode, 0, 0, 0, 0, 0, 0, 0.25);
+        addShape(frontwheelsideviewShape2, this.newWheelchair.Color.HexColorCode, 0, 0, 0, 0, 0, 0, 0.25);
+        addShape(pushhandleShape, this.newWheelchair.Color.HexColorCode, 0, 0, 0, 0, 0, 0, 0.25);
+
+        scene.add(group);
+
+        var wheelfrontview1 = new THREE.Geometry();
+        var wheelfrontview2 = new THREE.Geometry();
+        var frontwheelfrontview1 = new THREE.Geometry();
+        var frontwheelfrontview2 = new THREE.Geometry();
+
+        //wheelchair size lines
+        var A = new THREE.Geometry();
+        var B = new THREE.Geometry();
+        var C = new THREE.Geometry();
+        var D = new THREE.Geometry();
+        var E = new THREE.Geometry();
+        var F = new THREE.Geometry();
+        var G = new THREE.Geometry();
+        var H = new THREE.Geometry();
+        var I = new THREE.Geometry();
+
+        A.vertices.push(new THREE.Vector3(-60, 16, 0));
+        A.vertices.push(new THREE.Vector3(-60, 18, 0));
+        A.vertices.push(new THREE.Vector3(-60, 17, 0));
+        A.vertices.push(new THREE.Vector3(-27, 17, 0));
+        A.vertices.push(new THREE.Vector3(-27, 16, 0));
+        A.vertices.push(new THREE.Vector3(-27, 18, 0));
+
+        B.vertices.push(new THREE.Vector3(-52, -38, 0));
+        B.vertices.push(new THREE.Vector3(-52, -40, 0));
+        B.vertices.push(new THREE.Vector3(-52, -39, 0));
+        B.vertices.push(new THREE.Vector3(-35, -39, 0));
+        B.vertices.push(new THREE.Vector3(-35, -38, 0));
+        B.vertices.push(new THREE.Vector3(-35, -40, 0));
+
+        C.vertices.push(new THREE.Vector3(56, 15, 0));
+        C.vertices.push(new THREE.Vector3(58, 15, 0));
+        C.vertices.push(new THREE.Vector3(57, 15, 0));
+        C.vertices.push(new THREE.Vector3(57, -7, 0));
+        C.vertices.push(new THREE.Vector3(56, -7, 0));
+        C.vertices.push(new THREE.Vector3(58, -7, 0));
+
+        D.vertices.push(new THREE.Vector3(50, -12, 0));
+        D.vertices.push(new THREE.Vector3(50, -42, 0));
+        D.vertices.push(new THREE.Vector3(50, -40, 0));
+        D.vertices.push(new THREE.Vector3(0, -40, 0));
+        D.vertices.push(new THREE.Vector3(0, -31, 0));
+        D.vertices.push(new THREE.Vector3(0, -42, 0));
+
+        E.vertices.push(new THREE.Vector3(9, -7, 0));
+        E.vertices.push(new THREE.Vector3(-9, -7, 0));
+        E.vertices.push(new THREE.Vector3(-8, -7, 0));
+        E.vertices.push(new THREE.Vector3(-8, -40, 0));
+        E.vertices.push(new THREE.Vector3(-7, -40, 0));
+        E.vertices.push(new THREE.Vector3(-9, -40, 0));
+
+        F.vertices.push(new THREE.Vector3(13, -3, 0));
+        F.vertices.push(new THREE.Vector3(-3, -3, 0));
+        F.vertices.push(new THREE.Vector3(-2, -3, 0));
+        F.vertices.push(new THREE.Vector3(-2, -30, 0));
+        F.vertices.push(new THREE.Vector3(-3, -30, 0));
+        F.vertices.push(new THREE.Vector3(-1, -30, 0));
+
+        G.vertices.push(new THREE.Vector3(53, 18, 0));
+        G.vertices.push(new THREE.Vector3(53, 16, 0));
+        G.vertices.push(new THREE.Vector3(53, 17, 0));
+        G.vertices.push(new THREE.Vector3(13.3, 17, 0));
+        G.vertices.push(new THREE.Vector3(13.3, 16, 0));
+        G.vertices.push(new THREE.Vector3(13.3, 18, 0));
+
+        H.vertices.push(new THREE.Vector3(53, -25, 0));
+        H.vertices.push(new THREE.Vector3(53, -11, 0));
+        H.vertices.push(new THREE.Vector3(53, -24, 0));
+        H.vertices.push(new THREE.Vector3(44, -24, 0));
+        H.vertices.push(new THREE.Vector3(44, -19, 0));
+        H.vertices.push(new THREE.Vector3(44, -25, 0));
+
+        var aLine = new THREE.Line(A, line2);
+        var bLine = new THREE.Line(B, line2);
+        var cLine = new THREE.Line(C, line2);
+        var dLine = new THREE.Line(D, line2);
+        var eLine = new THREE.Line(E, line2);
+        var fLine = new THREE.Line(F, line2);
+        var gLine = new THREE.Line(G, line2);
+        var hLine = new THREE.Line(H, line2);
+
+        scene.add(aLine);
+        scene.add(bLine);
+        scene.add(cLine);
+        scene.add(dLine);
+        scene.add(eLine);
+        scene.add(fLine);
+        scene.add(gLine);
+        scene.add(hLine);
+
+        var wheelpiece = new THREE.Geometry();
+        var wheelpieceupper = new THREE.Geometry();
+        var seatdepth1 = new THREE.Geometry();
+        var seatdepth2 = new THREE.Geometry();
+        var cushion = new THREE.Geometry();
+        var seatheight1 = new THREE.Geometry();
+        var seatheight2 = new THREE.Geometry();
+        var seatheight3 = new THREE.Geometry();
+
+        //frontview
+
+        wheelfrontview1.vertices.push(new THREE.Vector3(-21, -40, 0));
+        wheelfrontview1.vertices.push(new THREE.Vector3(-24, 5, 0));
+        wheelfrontview1.vertices.push(new THREE.Vector3(-21, 5, 0));
+        wheelfrontview1.vertices.push(new THREE.Vector3(-18, -40, 0));
+        wheelfrontview1.vertices.push(new THREE.Vector3(-21, -40, 0));
+
+        wheelfrontview2.vertices.push(new THREE.Vector3(-69, -40, 0));
+        wheelfrontview2.vertices.push(new THREE.Vector3(-66, 5, 0));
+        wheelfrontview2.vertices.push(new THREE.Vector3(-63, 5, 0));
+        wheelfrontview2.vertices.push(new THREE.Vector3(-66, -40, 0));
+        wheelfrontview2.vertices.push(new THREE.Vector3(-69, -40, 0));
+
+        frontwheelfrontview1.vertices.push(new THREE.Vector3(-58, -40, 0));
+        frontwheelfrontview1.vertices.push(new THREE.Vector3(-57, -40.5, 0));
+        frontwheelfrontview1.vertices.push(new THREE.Vector3(-56, -40, 0));
+        frontwheelfrontview1.vertices.push(new THREE.Vector3(-56, -34, 0));
+        frontwheelfrontview1.vertices.push(new THREE.Vector3(-57, -33.5, 0));
+        frontwheelfrontview1.vertices.push(new THREE.Vector3(-58, -34, 0));
+        frontwheelfrontview1.vertices.push(new THREE.Vector3(-58, -40, 0));
+
+        frontwheelfrontview2.vertices.push(new THREE.Vector3(-31, -40, 0));
+        frontwheelfrontview2.vertices.push(new THREE.Vector3(-30, -40.5, 0));
+        frontwheelfrontview2.vertices.push(new THREE.Vector3(-29, -40, 0));
+        frontwheelfrontview2.vertices.push(new THREE.Vector3(-29, -34, 0));
+        frontwheelfrontview2.vertices.push(new THREE.Vector3(-30, -33.5, 0));
+        frontwheelfrontview2.vertices.push(new THREE.Vector3(-31, -34, 0));
+        frontwheelfrontview2.vertices.push(new THREE.Vector3(-31, -40, 0));
+
+        //sideview
+
+        wheelpiece.vertices.push(new THREE.Vector3(11, -35, 0));
+        wheelpiece.vertices.push(new THREE.Vector3(7, -28, 0));
+        wheelpiece.vertices.push(new THREE.Vector3(10, -28, 0));
+        wheelpiece.vertices.push(new THREE.Vector3(11, -35, 0));
+
+        wheelpieceupper.vertices.push(new THREE.Vector3(10, -28, 0));
+        wheelpieceupper.vertices.push(new THREE.Vector3(10, -21, 0));
+        wheelpieceupper.vertices.push(new THREE.Vector3(7, -21, 0));
+        wheelpieceupper.vertices.push(new THREE.Vector3(7, -28, 0));
+        wheelpieceupper.vertices.push(new THREE.Vector3(7, -22, 0));
+        wheelpieceupper.vertices.push(new THREE.Vector3(3, -20, 0));
+        wheelpieceupper.vertices.push(new THREE.Vector3(2, -24, 0));
+        wheelpieceupper.vertices.push(new THREE.Vector3(7, -26, 0));
+
+        //seatdepth
+        seatdepth1.vertices.push(new THREE.Vector3(15, -10, 0));
+        seatdepth1.vertices.push(new THREE.Vector3(53, -10, 0));
+
+        seatdepth2.vertices.push(new THREE.Vector3(15, -7, 0));
+        seatdepth2.vertices.push(new THREE.Vector3(50, -7, 0));
+
+        cushion.vertices.push(new THREE.Vector3(50, -4, 0));
+        cushion.vertices.push(new THREE.Vector3(49, -3, 0));
+        cushion.vertices.push(new THREE.Vector3(15, -3, 0));
+        cushion.vertices.push(new THREE.Vector3(14, -4, 0));
+        cushion.vertices.push(new THREE.Vector3(13.3, -5.5, 0));
+        cushion.vertices.push(new THREE.Vector3(14, -6.8, 0));
+        cushion.vertices.push(new THREE.Vector3(15, -7, 0));
+
+        //backseatheight
+        seatheight1.vertices.push(new THREE.Vector3(50, -10, 0));
+        seatheight1.vertices.push(new THREE.Vector3(50, 15, 0));
+
+        seatheight2.vertices.push(new THREE.Vector3(53, -10, 0));
+        seatheight2.vertices.push(new THREE.Vector3(53, 15, 0));
+        seatheight2.vertices.push(new THREE.Vector3(53, 5, 0));
+        seatheight2.vertices.push(new THREE.Vector3(60, 5, 0));
+        seatheight2.vertices.push(new THREE.Vector3(61, 6, 0));
+        seatheight2.vertices.push(new THREE.Vector3(60, 7, 0));
+        seatheight2.vertices.push(new THREE.Vector3(53, 7, 0));
+
+        seatheight3.vertices.push(new THREE.Vector3(50, 15, 0));
+        seatheight3.vertices.push(new THREE.Vector3(53, 15, 0));
+
+        //wheels                            X    Y  (Radius) (   angles   )         rotation
+        var wheelaxis = new THREE.EllipseCurve(44, -18, 3, 2.5, 0, 2 * Math.PI, false, 0);
+        var points = wheelaxis.getPoints(50);
+        var wheelaxisbuffer = new THREE.BufferGeometry().setFromPoints(points);
+
+        var frontwheel = new THREE.EllipseCurve(11, -35, 6, 5, 0, 2 * Math.PI, false, 0);
+        var points = frontwheel.getPoints(50);
+        var frontwheelbuffer = new THREE.BufferGeometry().setFromPoints(points);
+
+        // Create the final object to add to the scene
+        var wheelfrontviewline1 = new THREE.Line(wheelfrontview1, material);
+        var wheelfrontviewline2 = new THREE.Line(wheelfrontview2, material);
+        var frontwheelfrontviewline1 = new THREE.Line(frontwheelfrontview1, material);
+        var frontwheelfrontviewline2 = new THREE.Line(frontwheelfrontview2, material);
+
+        var seatdepthline1 = new THREE.Line(seatdepth1, material);
+        var seatdepthline2 = new THREE.Line(seatdepth2, material);
+        var cushionline = new THREE.Line(cushion, material);
+
+        var seatheightline1 = new THREE.Line(seatheight1, material);
+        var seatheightline2 = new THREE.Line(seatheight2, material);
+        var seatheightline3 = new THREE.Line(seatheight3, material);
+
+
+        var wheelaxisline = new THREE.Line(wheelaxisbuffer, material);
+        var frontwheelline = new THREE.Line(frontwheelbuffer, material);
+        var wheelpieceline = new THREE.Line(wheelpiece, material);
+        var wheelpieceupperline = new THREE.Line(wheelpieceupper, material);
+
+
+        //add everything to the scene
+        scene.add(wheelfrontviewline1);
+        scene.add(wheelfrontviewline2);
+        scene.add(frontwheelfrontviewline1);
+        scene.add(frontwheelfrontviewline2);
+
+        scene.add(seatdepthline1);
+        scene.add(seatdepthline2);
+        scene.add(cushionline);
+        scene.add(seatheightline1);
+        scene.add(seatheightline2);
+        scene.add(seatheightline3);
+
+        scene.add(wheelaxisline);
+        scene.add(frontwheelline);
+        scene.add(wheelpieceline);
+
+        //renders scene to the WebGLRenderer
+        renderer.render(scene, camera);
+      }
+    
+      isArticleChecked(article, selectedArticles) {
+        var shouldChecked = false;
+        selectedArticles.forEach(selected => {
+          if (selected.ArticleId == article.ArticleId) {
+            shouldChecked = true;
+          }
+        });
+        return shouldChecked;
+      }
+
+      isFrontwheelChecked(frontwheel, selectedFrontwheels) {
+        var shouldChecked = false;
+        selectedFrontwheels.forEach(selected => {
+          if (selected.FrontWheelId == frontwheel.FrontWheelId) {
+            shouldChecked = true;
+          }
+        });
+        return shouldChecked;
+      }
+
+      isHoopChecked(hoop, selectedHoops) {
+        var shouldChecked = false;
+        selectedHoops.forEach(selected => {
+          if (selected.HoopId == hoop.HoopId) {
+            shouldChecked = true;
+          }
+        });
+        return shouldChecked;
+      }
+
+      isWheelChecked(wheel, selectedWheels) {
+        var shouldChecked = false;
+        selectedWheels.forEach(selected => {
+          if (selected.WheelId == wheel.WheelId) {
+            shouldChecked = true;
+          }
+        });
+        return shouldChecked;
+      }
+
+      isTireChecked(tire, selectedTires) {
+        var shouldChecked = false;
+        selectedTires.forEach(selected => {
+          if (selected.TireId == tire.TireId) {
+            shouldChecked = true;
+          }
+        });
+        return shouldChecked;
+      }
+
+      isWheelprotectorChecked(wheelprotector, selectedWheelprotector) {
+        var shouldChecked = false;
+        selectedWheelprotector.forEach(selected => {
+          if (selected.WheelprotectorId == wheelprotector.WheelprotectorId) {
+            shouldChecked = true;
+          }
+        });
+        return shouldChecked;
+      }
+
+      handleResponse(data, request) {
+        this.articles = request.response.Articles;
+        this.wheels = request.response.Wheel;
+        this.frontwheels = request.response.FrontWheels;
+        this.hoops = request.response.Hoops;
+        this.tires = request.response.Tires;
+        this.wheelprotectors = request.response.WheelProtector;
+        this._convertToBackendObjects();
+
+        this.ralcolors = request.response.RalColors;
+        this.ralColorCodes = [];
+        var that = this;
+        this.ralcolors.forEach(function (color) {
+          that.ralColorCodes.push(color.HexColorCode);
+        });
+      }
+      onCancel() {
+        this.$$('#addNotesDialog').opened = false;
+      }
+
+      onSaveNotes() {
+        if (!(/^\d+$/.test(this.addition.Discount)) || parseInt(this.addition.Discount) > 99 ||
+          parseInt(this.addition.Discount) < 0) {
+          this.errorToast = this.localize('discount_number_only');
+          return;
+        }
+        if (!(/^\d+$/.test(this.addition.Amount)) || parseInt(this.addition.Amount) > 99 ||
+          parseInt(this.addition.Amount) < 0) {
+          this.errorToast = this.localize('amount_number_only');
+          return;
+        }
+
+        var that = this;
+        if (this.selectedArticle.Type == "Article") {
+          this._saveArticleNote();
+        } else if (this.selectedArticle.Type == "Wheelprotector") {
+          this._saveWheelprotectorNote();
+        } else if (this.selectedArticle.Type == "Tire") {
+          this._saveTireNote();
+        } else if (this.selectedArticle.Type == "Frontwheel") {
+          this._saveFrontwheelNote();
+        } else if (this.selectedArticle.Type == "Hoop") {
+          this._saveHoopNote();
+        } else if (this.selectedArticle.Type == "Wheel") {
+          this._saveWheelNote();
+        } else {
+          this.newWheelchair.Addition = this.addition;
+        }
+        this.$$('#addNotesDialog').opened = false;
+      }
+
+      onSaveError(event) {
+        this.errorToast = event.detail.request.xhr.statusText;
+      }
+
+      handleError(response, data) {
+        if (data.request.status == 403) {
+          this.errorToast = this.localize('access_denied', 'error', data.request.response);
+          this.userdata = "{}";
+          this.loggedIn = false;
+        } else {
+          this.errorToast = this.localize('unknown_error', 'error', data.request.response);
+        }
+      }
+
+      onSave() {
+        if (!this._validateNumbers(this.newWheelchair.SeatWidth) || !this._validateNumbers(this.newWheelchair.FootplateWidth) ||
+          !this._validateNumbers(this.newWheelchair.SeatDepth) || !this._validateNumbers(this.newWheelchair.FrameLength) ||
+          !this._validateNumbers(this.newWheelchair.BackrestHeight) || !this._validateNumbers(this.newWheelchair.SeatHeightFront) ||
+          !this._validateNumbers(this.newWheelchair.SeatHeightBack) || !this._validateNumbers(this.newWheelchair.BalancePoint) ||
+          !this._validateNumbers(this.newWheelchair.LowerLegWidth)) {
+          this.errorToast = this.localize('incorrect_sizes');
+          return;
+        }
+        if (this.newWheelchair.Articles == null || this.newWheelchair.Articles.length == 0) {
+          this.errorToast = this.localize('no_articles_error');
+          return;
+        }
+        if (this.newWheelchair.Frontwheels == null || this.newWheelchair.Frontwheels.length == 0) {
+          this.errorToast = this.localize('no_frontwheel_error');
+          return;
+        }
+        if (this.newWheelchair.Hoops == null || this.newWheelchair.Hoops.length == 0) {
+          this.errorToast = this.localize('no_hoop_error');
+          return;
+        }
+        if (this.newWheelchair.Wheels == null || this.newWheelchair.Wheels.length == 0) {
+          this.errorToast = this.localize('no_wheels_error');
+          return;
+        }
+        if (this.newWheelchair.Tires == null || this.newWheelchair.Tires.length == 0) {
+          this.errorToast = this.localize('no_tires_error');
+          return;
+        }
+        if (this.newWheelchair.Color == null || Object.keys(this.newWheelchair.Color).length == 0) {
+          this.errorToast = this.localize('no_color_error');
+          return;
+        }
+        this.$$('#saveWheelchairs').body = JSON.stringify(this.newWheelchair);
+        this.$$('#saveWheelchairs').generateRequest();
+      }
+
+      toggleSelection(event) {
+        var index = event.target.attributes.getNamedItem('selectedArticle').value
+        if (this.isArticleChecked(this.articles[index], this.newWheelchair.Articles)) {
+          for (var i = this.newWheelchair.Articles.length - 1; i >= 0; --i) {
+            if (this.newWheelchair.Articles[i].ArticleId == this.articles[index].ArticleId) {
+              this.newWheelchair.Articles.splice(i, 1);
+            }
+          }
+        } else {
+          this.newWheelchair.Articles.push(this.articles[index]);
+        }
+        if (this.newWheelchair.Articles.length == 1) {
+          this.$.articles.header =
+            `${this.localize('articles')} : <u style='color:green'> 1 ${this.localize('article')} ${this.localize('selected')}</u>`;
+        } else {
+          this.$.articles.header =
+            `${this.localize('articles')} : <u style='color:green'> ${this.newWheelchair.Articles.length} ${this.localize('articles')} ${this.localize('selected')}</u>`;
+        }
+      }
+
+      frontWheelsCollapse(event) {
+        this.$.frontwheels._toggleOpened(null);
+        var index = event.target.attributes.getNamedItem('selectedFrontwheels').value;
+        this.newWheelchair.Frontwheels = [];
+        this.newWheelchair.Frontwheels.push(this.frontwheels[index]);
+        this.notifyPath('newWheelchair.Frontwheels');
+        this.$.frontwheels.header =
+          `${this.localize('frontwheels')} : <u style='color:green'> ${this.newWheelchair.Frontwheels[0].Description}`;
+      }
+
+      hoopsCollapse(event) {
+        this.$.hoops._toggleOpened(null);
+        var index = event.target.attributes.getNamedItem('selectedHoops').value;
+        this.newWheelchair.Hoops = [];
+        this.newWheelchair.Hoops.push(this.hoops[index]);
+        this.notifyPath('newWheelchair.Hoops');
+        this.$.hoops.header =
+          `${this.localize('hoops')} : <u style='color:green'> ${this.newWheelchair.Hoops[0].Description}`;
+      }
+
+      wheelsCollapse(event) {
+        this.$.wheels._toggleOpened(null);
+        var index = event.target.attributes.getNamedItem('selectedWheels').value;
+        this.newWheelchair.Wheels = [];
+        this.newWheelchair.Wheels.push(this.wheels[index]);
+        this.notifyPath('newWheelchair.Wheels');
+        this.$.wheels.header =
+          `${this.localize('wheels')} : <u style='color:green'> ${this.newWheelchair.Wheels[0].Description}`;
+      }
+
+      tiresCollapse(event) {
+        this.$.tires._toggleOpened(null);
+        var index = event.target.attributes.getNamedItem('selectedTires').value;
+        this.newWheelchair.Tires = [];
+        this.newWheelchair.Tires.push(this.tires[index]);
+        this.notifyPath('newWheelchair.Tires');
+        this.$.tires.header =
+          `${this.localize('tires')} : <u style='color:green'> ${this.newWheelchair.Tires[0].Description}`;
+      }
+
+      wheelProtectorsCollapse(event) {
+        this.$.wheelprotectors._toggleOpened(null);
+        var index = event.target.attributes.getNamedItem('selectedWheelprotectors').value;
+        if (this.newWheelchair.Wheelprotectors && this.newWheelchair.Wheelprotectors.length > 0) {
+          if (this.newWheelchair.Wheelprotectors[0].WheelprotectorId == this.wheelprotectors[index].WheelprotectorId) {
+            this.newWheelchair.Wheelprotectors = [];
+            this.notifyPath('newWheelchair.Wheelprotectors');
+          } else {
+            this.newWheelchair.Wheelprotectors = [];
+            this.newWheelchair.Wheelprotectors.push(this.wheelprotectors[index]);
+          }
+        } else {
+          this.newWheelchair.Wheelprotectors = [];
+          this.newWheelchair.Wheelprotectors.push(this.wheelprotectors[index]);
+        }
+        this.notifyPath('newWheelchair.Wheelprotectors');
+        if (this.newWheelchair.Wheelprotectors.length > 0) {
+          this.$.wheelprotectors.header =
+            `${this.localize('wheel_protectors')} : <u style='color:green'> ${this.newWheelchair.Wheelprotectors[0].Description}`;
+        } else {
+          this.$.wheelprotectors.header =
+            `${this.localize('wheel_protectors')}`;
+        }
+      }
+
+      onWheelchairColorChanged(colorCode) {
+        if (this.ralcolors) {
+          colorCode = colorCode.toUpperCase();
+          var color = this.ralcolors.filter(function (color) {
+            return color.HexColorCode == colorCode;
+          });
+          this.newWheelchair.Color = color[0];
+          this.notifyPath('newWheelchair.Color');
+          this.$.wheelchaircolor._toggleOpened(null);
+          //header dot changes to selected color
+          this.$.wheelchaircolor.header =
+            `${this.localize('color')} : RAL ${this.newWheelchair.Color.ColorCode}
+            <div style='background-color: ${this.newWheelchair.Color.HexColorCode}; width:25px; height:25px; border-radius: 50%; display:inline; float:right; margin-right:20px;'> </div>`;
+          this.showWheelchairPreviewDialog();
+        }
+      }
+
+      onSaveResponse(data, request) {
+        this.succesToast = this.localize('save_wheelchair_success');
+        this.handleGetResponse(data, request);
+      }
+
+      handleGetResponse(data, request) {
+        this.newWheelchair = request.response;
+        this.newWheelchair.OldId = this.newWheelchair.Id;
+        delete this.newWheelchair["Id"];
+        this.newWheelchair.Articles.forEach(function (article) {
+          article.Id = 0;
+        });
+        this.newWheelchair.Frontwheels.forEach(function (fwheel) {
+          fwheel.Id = 0;
+        });
+        this.newWheelchair.Hoops.forEach(function (hoop) {
+          hoop.Id = 0;
+        });
+        this.newWheelchair.Tires.forEach(function (tire) {
+          tire.Id = 0;
+        });
+        this.newWheelchair.Wheelprotectors.forEach(function (wp) {
+          wp.Id = 0;
+        });
+        this.newWheelchair.Wheels.forEach(function (wheel) {
+          wheel.Id = 0;
+        });
+        this.wheelchairColor = this.newWheelchair.Color.HexColorCode;
+        if (this.newWheelchair.Articles.length == 1) {
+          this.$.articles.header =
+            `${this.localize('articles')} : <u style='color:green'> 1 ${this.localize('article')} ${this.localize('selected')}</u>`;
+        } else {
+          this.$.articles.header =
+            `${this.localize('articles')} : <u style='color:green'> ${this.newWheelchair.Articles.length} ${this.localize('articles')} ${this.localize('selected')}</u>`;
+        }
+        this.$.frontwheels.header =
+          `${this.localize('frontwheels')} : <u style='color:green'> ${this.newWheelchair.Frontwheels[0].Frontwheel.Description}`;
+        this.$.hoops.header =
+          `${this.localize('hoops')} : <u style='color:green'> ${this.newWheelchair.Hoops[0].Hoop.Description}`;
+        this.$.wheels.header =
+          `${this.localize('wheels')} : <u style='color:green'> ${this.newWheelchair.Wheels[0].Wheel.Description}`;
+        this.$.tires.header =
+          `${this.localize('tires')} : <u style='color:green'> ${this.newWheelchair.Tires[0].Tire.Description}`;
+        if (this.newWheelchair.Wheelprotectors && this.newWheelchair.Wheelprotectors.length > 0) {
+          this.$.wheelprotectors.header =
+            `${this.localize('wheel_protectors')} : <u style='color:green'> ${this.newWheelchair.Wheelprotectors[0].WheelProtector.Description}`;
+        }
+      }
+
+
+      userParams(userdata) {
+        if (userdata == null || userdata == "") {
+          return null;
+        }
+        var user = JSON.parse(userdata);
+        if (Object.keys(user).length == 0) {
+          return null;
+        }
+        var requestBody = {
+          Username: user.username,
+          Token: user.accesstoken
+        };
+        return requestBody;
+      }
+
+      addArticleNote(event) {
+        var that = this;
+        this.addition = {};
+        var product = JSON.parse(event.target.getAttribute('product'));
+        var containsArticle = false;
+        this.newWheelchair.Articles.forEach(function (article) {
+          if (article.ArticleId == product.ArticleId) {
+            containsArticle = true;
+            if (article.Addition) {
+              that.addition = article.Addition;
+            }
+          }
+        });
+
+        if (containsArticle) {
+          product.Type = "Article";
+          this.selectedArticle = product;
+          this.$$('#addNotesDialog').opened = true;
+        } else {
+          this.errorToast = this.localize('add_product_before_note');
+        }
+      }
+
+      addWheelprotectorNote(event) {
+        var that = this;
+        this.addition = {};
+        var product = JSON.parse(event.target.getAttribute('product'));
+        var containsArticle = false;
+        this.newWheelchair.Wheelprotectors.forEach(function (protector) {
+          if (protector.WheelprotectorId == product.WheelprotectorId) {
+            containsArticle = true;
+            if (protector.Addition) {
+              that.addition = protector.Addition;
+            }
+          }
+        });
+
+        if (containsArticle) {
+          product.Type = "Wheelprotector";
+          this.selectedArticle = product;
+          this.$$('#addNotesDialog').opened = true;
+        } else {
+          this.errorToast = this.localize('add_product_before_note');
+        }
+      }
+
+      addFrontwheelNote(event) {
+        var that = this;
+        this.addition = {};
+        var product = JSON.parse(event.target.getAttribute('product'));
+        var containsArticle = false;
+        this.newWheelchair.Frontwheels.forEach(function (frontwheel) {
+          if (frontwheel.FrontWheelId == product.FrontWheelId) {
+            containsArticle = true;
+            if (frontwheel.Addition) {
+              that.addition = frontwheel.Addition;
+            }
+          }
+        });
+
+        if (containsArticle) {
+          product.Type = "Frontwheel";
+          this.selectedArticle = product;
+          this.$$('#addNotesDialog').opened = true;
+        } else {
+          this.errorToast = this.localize('add_product_before_note');
+        }
+      }
+
+      addHoopNote(event) {
+        var that = this;
+        this.addition = {};
+        var product = JSON.parse(event.target.getAttribute('product'));
+        var containsArticle = false;
+        this.newWheelchair.Hoops.forEach(function (hoop) {
+          if (hoop.HoopId == product.HoopId) {
+            containsArticle = true;
+            if (hoop.Addition) {
+              that.addition = hoop.Addition;
+            }
+          }
+        });
+
+        if (containsArticle) {
+          product.Type = "Hoop";
+          this.selectedArticle = product;
+          this.$$('#addNotesDialog').opened = true;
+        } else {
+          this.errorToast = this.localize('add_product_before_note');
+        }
+      }
+
+      addWheelNote(event) {
+        var that = this;
+        this.addition = {};
+        var product = JSON.parse(event.target.getAttribute('product'));
+        var containsArticle = false;
+        this.newWheelchair.Wheels.forEach(function (wheel) {
+          if (wheel.WheelId == product.WheelId) {
+            containsArticle = true;
+            if (wheel.Addition) {
+              that.addition = wheel.Addition;
+            }
+          }
+        });
+
+        if (containsArticle) {
+          product.Type = "Wheel";
+          this.selectedArticle = product;
+          this.$$('#addNotesDialog').opened = true;
+        } else {
+          this.errorToast = this.localize('add_product_before_note');
+        }
+      }
+
+      addTireNote(event) {
+        var that = this;
+        this.addition = {};
+        var product = JSON.parse(event.target.getAttribute('product'));
+        var containsArticle = false;
+        this.newWheelchair.Tires.forEach(function (tire) {
+          if (tire.TireId == product.TireId) {
+            containsArticle = true;
+            if (tire.Addition) {
+              that.addition = tire.Addition;
+            }
+          }
+        });
+
+        if (containsArticle) {
+          product.Type = "Tire";
+          this.selectedArticle = product;
+          this.$$('#addNotesDialog').opened = true;
+        } else {
+          this.errorToast = this.localize('add_product_before_note');
+        }
+      }
+
+      _saveArticleNote() {
+        var that = this;
+        this.newWheelchair.Articles.forEach(function (article) {
+          if (article.ArticleId == that.selectedArticle.ArticleId) {
+            article.Addition = that.addition;
+          }
+        });
+      }
+
+      _saveWheelprotectorNote() {
+        var that = this;
+        this.newWheelchair.Wheelprotectors.forEach(function (wheelprotector) {
+          if (wheelprotector.WheelprotectorId == that.selectedArticle.WheelprotectorId) {
+            wheelprotector.Addition = that.addition;
+          }
+        });
+      }
+
+
+      _saveFrontwheelNote() {
+        var that = this;
+        this.newWheelchair.Frontwheels.forEach(function (frontwheel) {
+          if (frontwheel.FrontWheelId == that.selectedArticle.FrontWheelId) {
+            frontwheel.Addition = that.addition;
+          }
+        });
+      }
+
+      _saveHoopNote() {
+        var that = this;
+        this.newWheelchair.Hoops.forEach(function (hoop) {
+          if (hoop.HoopId == that.selectedArticle.HoopId) {
+            hoop.Addition = that.addition;
+          }
+        });
+      }
+
+      _saveWheelNote() {
+        var that = this;
+        this.newWheelchair.Wheels.forEach(function (wheel) {
+          if (wheel.WheelId == that.selectedArticle.WheelId) {
+            wheel.Addition = that.addition;
+          }
+        });
+      }
+
+      _saveTireNote() {
+        var that = this;
+        this.newWheelchair.Tires.forEach(function (tire) {
+          if (tire.TireId == that.selectedArticle.TireId) {
+            tire.Addition = that.addition;
+          }
+        });
+      }
+
+      _onPageChanged() {
+        if (this.page == "wheelchair-config") {
+          if (this.userdata != "" && this.userdata != undefined) {
+            this.$.getArticles.generateRequest();
+            if (this.wheelchairId != 0 && this.wheelchairId != null && this.wheelchairId != undefined) {
+              this.$$('#getwheelchair').generateRequest();
+            } else if (this.customerId != 0 && this.customerId != null && this.customerId != undefined) {
+              this.newWheelchair.CustomerId = this.customerId;
+            }
+          }
+        } else {
+          this.newWheelchair = {
+            Addition: [],
+            Articles: [],
+            Frontwheels: [],
+            Hoops: [],
+            Wheels: [],
+            Tires: [],
+            Wheelprotectors: [],
+            Color: {},
+            OldId: 0
+          };
+          this.customerId = 0;
+          this.wheelchairId = 0;
+          this.$.frontwheels.header = `${this.localize('frontwheels')}`;
+          this.$.hoops.header = `${this.localize('hoops')}`;
+          this.$.wheels.header = `${this.localize('wheels')}`;
+          this.$.tires.header = `${this.localize('tires')}`;
+          this.$.wheelprotectors.header = `${this.localize('wheel_protectors')}`;
+          this.$.wheelchaircolor.header = `${this.localize('color')}`;
+          this.$.articles.header = `${this.localize('articles')}`;
+        }
+      }
+
+      _onLoadingChanged(newValue) {
+        if (newValue) {
+          this.$$('#loadingDialog').opened = true;
+        } else {
+          this.$$('#loadingDialog').opened = false;
+        }
+      }
+
+      _convertToBackendObjects() {
+        this.articles.forEach(function (article) {
+          article.ArticleId = article.Id;
+          delete article["Id"];
+        });
+        this.wheelprotectors.forEach(function (wheelprotector) {
+          wheelprotector.WheelprotectorId = wheelprotector.Id;
+          delete wheelprotector["Id"];
+        });
+        this.tires.forEach(function (tire) {
+          tire.TireId = tire.Id;
+          delete tire["Id"];
+        });
+        this.frontwheels.forEach(function (frontwheel) {
+          frontwheel.FrontWheelId = frontwheel.Id;
+          delete frontwheel["Id"];
+        });
+        this.hoops.forEach(function (hoop) {
+          hoop.HoopId = hoop.Id;
+          delete hoop["Id"];
+        });
+        this.wheels.forEach(function (wheel) {
+          wheel.WheelId = wheel.Id;
+          delete wheel["Id"];
+        });
+      }
+      
+      _validateNumbers(number) {
+        if (!(/^\d+$/.test(number)) || parseInt(number) > 9999 ||
+          parseInt(number) < 0) {
+          return false;
+        }
+
+        return true;
+      }
+    }
+    window.customElements.define(WheelchairConfigPage.is, WheelchairConfigPage);
+  </script>
+</dom-module>

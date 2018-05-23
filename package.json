@@ -9,7 +9,10 @@
   "scripts": {
     "lint": "npm run lint:javascript && polymer lint",
     "lint:javascript": "eslint . --ext js,html --ignore-path .gitignore",
-    "test": "polymer test",
+    "test": "polymer test -p -l chrome --skip-selenium-install",
     "test:integration": "polymer build"
+  },
+  "dependencies": {
+    "three": "^0.92.0"
   }
 }

@@ -21,7 +21,7 @@
     <brum-global-variable key="successtoast" value="{{succesToast}}"></brum-global-variable>
     <brum-global-variable key="errortoast" value="{{errorToast}}"></brum-global-variable>
     <brum-global-variable key="loggedin" value="{{loggedIn}}"></brum-global-variable>
-    <brum-global-variable key="language" value="{{language}}"></brum-global-variable>    
+    <brum-global-variable key="language" value="{{language}}"></brum-global-variable>
 
     <app-localstorage-document key="userdata" data="{{userdata}}"></app-localstorage-document>
 
@@ -31,7 +31,7 @@
     <div class="card">
       <h1>Login</h1>
       <paper-input label="{{localize('username')}}" value="{{username}}"></paper-input>
-      <paper-input label="{{localize('password')}}" type="password" value="{{password}}"></paper-input>
+      <paper-input label="{{localize('password')}}" type="password" value="{{password}}" on-keydown="checkForEnter"></paper-input>
       <template is="dom-if" if="{{!isLoading}}">
         <paper-button raised on-tap="onLogin">Login!</paper-button>
       </template>
@@ -43,7 +43,9 @@
 
   <script>
     class LoginPage extends Polymer.mixinBehaviors([Polymer.AppLocalizeBehavior], Polymer.Element) {
-      static get is() { return 'login-page'; }
+      static get is() {
+        return 'login-page';
+      }
       static get properties() {
         return {
           isLoading: {
@@ -74,9 +76,11 @@
         };
 
         this.userdata = JSON.stringify(loginObject);
+        this.loggedIn = true;
 
         if (data.detail.xhr.response.LastLogin != null) {
-          this.succesToast = this.localize('login', 'name', loginObject.username, 'accesslevel', loginObject.accesslevel, 'lastlogin', data.detail.xhr.response.LastLogin);
+          this.succesToast = this.localize('login', 'name', loginObject.username, 'accesslevel', loginObject.accesslevel,
+            'lastlogin', data.detail.xhr.response.LastLogin);
         } else {
           this.succesToast = this.localize('first_login', 'name', loginObject.username, 'accesslevel', loginObject.accesslevel);
         }
@@ -94,13 +98,16 @@
         return JSON.stringify(params);
       }
 
-      isLoggedIn(userdata) {
-        if (Object.keys(userdata).length === 0) {
-          return "Logged out!"
+      checkForEnter(event) {
+        if (event.keyCode === 13) {
+          this.onLogin();
         }
-        var user = JSON.parse(userdata);
-        return `Logged in as ${user.username}, ${user.accesslevel}, ${user.accesstoken}!`;
-        this.loggedIn = true;
+      }
+
+      checkForEnter(event) {
+        if (event.keyCode === 13) {
+          this.onLogin();
+        }
       }
     }
 
