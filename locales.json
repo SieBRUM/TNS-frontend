@@ -30,7 +30,7 @@
         "lowerleg_width": "I - Lowerleg frame width",
         "seat_depth": "C - Depth of seat",
         "seat_width": "A - Width of seat",
-        "seat_height_back": "G - Height back of seat",
+        "seat_height_back": "G - Height ground till seat",
         "seat_height_front": "F - Height front of seat",
         "edit_user_title": "Edit user",
         "add_user_title": "Add user",
@@ -59,6 +59,7 @@
         "zipcode": "Zipcode",
         "actions": "Actions",
         "customer_name": "Customer name",
+        "customer_first_last": "First name + Surename",
         "add_customer_title": "Add customer",
         "save_customer_succcess": "Customer '{name} has been saved!'",
         "name_empty_error": "Name cannot be empty!",
@@ -96,7 +97,6 @@
         "no_wheels_error": "Wheelchair must have one wheel set!",
         "no_tires_error": "Wheelchair must have one tire set!",
         "no_color_error": "Wheelchair must have a color!"
-
     },
     "nl": {
         "app_title": "TNS Web applicatie",
@@ -129,7 +129,7 @@
         "lowerleg_width": "I - Onderbeen frame breedte",
         "seat_depth": "C - Diepte zitgedeelte",
         "seat_width": "A - Breedte zitgedeelte",
-        "seat_height_back": "G - Hoogte rugleuning",
+        "seat_height_back": "G - Hoogte grond tot zitting",
         "seat_height_front": "F - Hoogte voorkant zitgedeelte",
         "edit_user_title": "Wijzig gebruiker",
         "add_user_title": "Gebruiker toevoegen",
@@ -158,6 +158,7 @@
         "zipcode": "Postcode",
         "actions": "Acties",
         "customer_name": "Klant naam",
+        "customer_first_last": "Voornaam + Achternaam",
         "add_customer_title": "Klant toevoegen",
         "save_customer_succcess": "Klant '{name}' is opgeslagen!",
         "name_empty_error": "Naam kan niet leeg zijn!",
