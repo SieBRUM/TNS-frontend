@@ -368,7 +368,6 @@
       showWheelchairPreviewDialog() {
         //gets div element
         var div = this.$$('#renderCanvas');
-        console.log(div.hasChildNodes());
         if (div.children.length > 1)
           div.removeChild(div.lastChild);
 
@@ -615,8 +614,6 @@
         addShape(pushhandleShape, this.newWheelchair.Color.HexColorCode, 0, 0, 0, 0, 0, 0, 0.25);
 
         scene.add(group);
-
-        console.log(group);
 
         var wheelfrontview1 = new THREE.Geometry();
         var wheelfrontview2 = new THREE.Geometry();
@@ -965,17 +962,13 @@
 
       toggleSelection(event) {
         var index = event.target.attributes.getNamedItem('selectedArticle').value
-        console.log("index:", index);
         if (this.isArticleChecked(this.articles[index], this.newWheelchair.Articles)) {
-          console.log("Exists, removing...");
           for (var i = this.newWheelchair.Articles.length - 1; i >= 0; --i) {
             if (this.newWheelchair.Articles[i].ArticleId == this.articles[index].ArticleId) {
-              console.log("Found match!", this.newWheelchair.Articles[i], this.articles[index]);
               this.newWheelchair.Articles.splice(i, 1);
             }
           }
         } else {
-          console.log("Does not exist, adding...");
           this.newWheelchair.Articles.push(this.articles[index]);
         }
         if (this.newWheelchair.Articles.length == 1) {
