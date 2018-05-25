@@ -187,7 +187,6 @@
             auto-validate pattern="[0-9]*" type="string" maxlength="4"></paper-input>
         </div>
         <paper-button class="confirm" style="float:right" on-tap="onSave">{{localize('save')}}</paper-button>
-        <paper-button class="preview" on-tap="showWheelchairPreview" style="float:right">{{localize('preview')}}</paper-button>
       </div>
       <div class="collapsebox">
         <paper-collapse-item id="articles" class="styled" header="{{localize('articles')}}">
@@ -490,6 +489,7 @@
         }
         if (this.newWheelchair.Articles == null || this.newWheelchair.Articles.length == 0) {
           this.errorToast = this.localize('no_articles_error');
+          console.log("hoi?");
           return;
         }
         if (this.newWheelchair.Frontwheels == null || this.newWheelchair.Frontwheels.length == 0) {
@@ -955,8 +955,8 @@
       }
 
       _validateNumbers(number) {
-        if (!(/^\d+$/.test(number)) || parseInt(number) > 9999 ||
-          parseInt(number) < 0) {
+        if (!(/^\d+$/.test(number)) || parseInt(number) > 999 ||
+          parseInt(number) < 1) {
           return false;
         }
 

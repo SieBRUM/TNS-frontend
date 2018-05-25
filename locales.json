@@ -96,7 +96,8 @@
         "no_hoop_error": "Wheelchair must have one hoop set!",
         "no_wheels_error": "Wheelchair must have one wheel set!",
         "no_tires_error": "Wheelchair must have one tire set!",
-        "no_color_error": "Wheelchair must have a color!"
+        "no_color_error": "Wheelchair must have a color!",
+        "email_error": "Invalid email!"
     },
     "nl": {
         "app_title": "TNS Web applicatie",
@@ -195,6 +196,7 @@
         "no_hoop_error": "Rolstoel moet 1 hoepel set hebben!",
         "no_wheels_error": "Rolstoel moet 1 wiel set hebben!",
         "no_tires_error": "Rolstoel moet 1 banden set hebben!",
-        "no_color_error": "Rolstoel moet een kleur hebben!"
+        "no_color_error": "Rolstoel moet een kleur hebben!",
+        "email_error": "Ongeldige email!"
     }
 }

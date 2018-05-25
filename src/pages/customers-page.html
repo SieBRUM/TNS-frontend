@@ -126,7 +126,8 @@
             <div class="dialog">
               <h1>{{dialogTitleText}}</h1>
               <paper-input label="{{localize('customer_first_last')}}" value="{{newCustomer.Name}}" char-counter maxlength="50"></paper-input>
-              <paper-input label="Email" value="{{newCustomer.Email}}" char-counter maxlength="50"></paper-input>
+              <paper-input label="Email" value="{{newCustomer.Email}}" char-counter maxlength="50" auto-validate pattern="[[emailRegex]]"
+                type="email"></paper-input>
               <paper-input label="{{localize('phone_number')}}" value="{{newCustomer.PhoneNumber}}" char-counter maxlength="50"></paper-input>
               <paper-input label="{{localize('city')}}" value="{{newCustomer.City}}" char-counter maxlength="50"></paper-input>
               <paper-input label="{{localize('zipcode')}}" value="{{newCustomer.Zipcode}}" char-counter maxlength="50"></paper-input>
@@ -264,6 +265,10 @@
       }
       if (!this.newCustomer.Zipcode) {
         this.errorToast = this.localize('zipcode_empty_error');
+        return;
+      }
+      if (!/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(this.newCustomer.Email)) {
+        this.errorToast = this.localize('email_error');
         return;
       }
       this.$$('#addCustomer').body = JSON.stringify(this.newCustomer);
