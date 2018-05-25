@@ -311,7 +311,16 @@
               Wheels: [],
               Tires: [],
               Wheelprotectors: [],
-              Color: {}
+              Color: {},
+              SeatWidth: 0,
+              FootplateWidth: 0,
+              SeatDepth: 0,
+              FrameLength: 0,
+              BackrestHeight: 0,
+              SeatHeightFront: 0,
+              SeatHeightBack: 0,
+              BalancePoint: 0,
+              LowerLegWidth: 0
             },
             type: Object,
             observer: 'showWheelchairPreview'
@@ -887,7 +896,16 @@
             Tires: [],
             Wheelprotectors: [],
             Color: {},
-            OldId: 0
+            OldId: 0,
+            SeatWidth: 0,
+            FootplateWidth: 0,
+            SeatDepth: 0,
+            FrameLength: 0,
+            BackrestHeight: 0,
+            SeatHeightFront: 0,
+            SeatHeightBack: 0,
+            BalancePoint: 0,
+            LowerLegWidth: 0
           };
           this.customerId = 0;
           this.wheelchairId = 0;
@@ -944,7 +962,6 @@
 
         return true;
       }
-
 
       /// Preview render from here...
       onInputChange() {
