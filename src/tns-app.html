@@ -14,6 +14,7 @@
 <link rel="import" href="../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="../bower_components/serviceworker-helpers/sw-update-toast.html">
+<link rel="import" href="../bower_components/iron-icons/iron-icons.html">
 <link rel="import" href="my-icons.html">
 
 <link rel="lazy-import" href="pages/login-page.html">
@@ -110,7 +111,7 @@
             <div main-title>{{localize('app_title')}}</div>
             <paper-icon-button src$="{{toPicture(language)}}" on-tap="_onLanguageChanged"></paper-icon-button>
             <template is="dom-if" if="[[loggedIn]]">
-              <paper-button raised on-tap="logout">LOG OUT</paper-button>
+              <paper-icon-button icon="icons:exit-to-app" raised on-tap="logout"></paper-icon-button>
             </template>
           </app-toolbar>
         </app-header>
